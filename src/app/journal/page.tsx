@@ -248,12 +248,20 @@ export default function JournalPage() {
             Entries auto-delete after {AUTO_DELETE_DAYS} days
           </p>
         </div>
-        <button
-          onClick={() => { setShowChangePassword(!showChangePassword); setChangePasswordError(""); setChangePasswordSuccess(false); }}
-          className="text-xs text-stone-400 hover:text-stone-600 transition-colors mt-1"
-        >
-          Change Password
-        </button>
+        <div className="flex gap-3 shrink-0 mt-1">
+          <button
+            onClick={() => { setShowChangePassword(!showChangePassword); setChangePasswordError(""); setChangePasswordSuccess(false); }}
+            className="text-xs text-stone-400 hover:text-stone-600 transition-colors"
+          >
+            Change Password
+          </button>
+          <button
+            onClick={() => { sessionStorage.removeItem("journal-unlocked"); setIsUnlocked(false); setPasswordInput(""); }}
+            className="text-xs text-stone-400 hover:text-red-500 transition-colors"
+          >
+            Lock
+          </button>
+        </div>
       </div>
 
       {showChangePassword && (
