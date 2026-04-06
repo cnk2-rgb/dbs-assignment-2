@@ -25,7 +25,7 @@ A multi-page productivity application. Here are my initial ideas for features.
 ## Tech Stack:
 - Next.JS
 - Tailwind CSS
-- Playwright MCP
+- Playwright MCP (claude mcp add playwright -- npx @anthropic-ai/mcp-playwright@latest)
 
 ## Suggested development steps (from assignment writeup):
 1. Pick your tool. What would you actually use? Don't overthink it — pick something and commit.

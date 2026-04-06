@@ -92,6 +92,68 @@ export default function TaskList({ tasks, setTasks }: TaskListProps) {
     return due < now;
   }
 
+  function generateIcsEvent(task: Task): string {
+    const now = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+    const uid = `${task.id}@productivity-app`;
+    let dtStart: string;
+    let dtEnd: string;
+    let allDay = false;
+
+    if (task.dueDate) {
+      const dateStr = task.dueDate.replace(/-/g, "");
+      if (task.dueTime) {
+        const timeStr = task.dueTime.replace(":", "") + "00";
+        dtStart = `${dateStr}T${timeStr}`;
+        const start = new Date(`${task.dueDate}T${task.dueTime}`);
+        const end = new Date(start.getTime() + 60 * 60 * 1000);
+        dtEnd = end.toISOString().replace(/[-:]/g, "").split(".")[0];
+      } else {
+        allDay = true;
+        dtStart = dateStr;
+        const nextDay = new Date(task.dueDate + "T00:00:00");
+        nextDay.setDate(nextDay.getDate() + 1);
+        dtEnd = nextDay.toISOString().slice(0, 10).replace(/-/g, "");
+      }
+    } else {
+      allDay = true;
+      const today = new Date();
+      dtStart = today.toISOString().slice(0, 10).replace(/-/g, "");
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      dtEnd = tomorrow.toISOString().slice(0, 10).replace(/-/g, "");
+    }
+
+    const dtProps = allDay
+      ? `DTSTART;VALUE=DATE:${dtStart}\nDTEND;VALUE=DATE:${dtEnd}`
+      : `DTSTART:${dtStart}\nDTEND:${dtEnd}`;
+
+    return `BEGIN:VEVENT\nUID:${uid}\nDTSTAMP:${now}\n${dtProps}\nSUMMARY:${task.text}\nEND:VEVENT`;
+  }
+
+  function downloadIcs(content: string, filename: string) {
+    const blob = new Blob(
+      [`BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Productivity App//EN\n${content}\nEND:VCALENDAR`],
+      { type: "text/calendar;charset=utf-8" }
+    );
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function exportTask(task: Task) {
+    downloadIcs(generateIcsEvent(task), `${task.text.replace(/\s+/g, "-").toLowerCase()}.ics`);
+  }
+
+  function exportAllTasks() {
+    const events = tasks.filter((t) => !t.completed).map(generateIcsEvent).join("\n");
+    downloadIcs(events, "all-tasks.ics");
+  }
+
   const completedCount = tasks.filter((t) => t.completed).length;
 
   return (
@@ -195,6 +257,15 @@ export default function TaskList({ tasks, setTasks }: TaskListProps) {
                         </div>
                       )}
                     </div>
+                    <a
+                      href={getGoogleCalendarUrl(task)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 text-xs text-stone-400 opacity-0 transition-opacity hover:text-blue-600 group-hover:opacity-100"
+                      title="Add to Google Calendar"
+                    >
+                      📅 Export
+                    </a>
                     <button onClick={() => startEditing(task)} className="shrink-0 text-xs text-stone-400 opacity-0 transition-opacity hover:text-stone-600 group-hover:opacity-100">Edit</button>
                     <button onClick={() => deleteTask(task.id)} className="shrink-0 text-xs text-stone-400 opacity-0 transition-opacity hover:text-red-500 group-hover:opacity-100">Delete</button>
                   </div>
@@ -202,6 +273,22 @@ export default function TaskList({ tasks, setTasks }: TaskListProps) {
               </li>
             ))}
           </ul>
+
+          {/* Export all to Google Calendar */}
+          {tasks.some((t) => t.dueDate) && (
+            <div className="flex justify-end">
+              <button
+                onClick={() => {
+                  tasks.filter((t) => !t.completed).forEach((task) => {
+                    window.open(getGoogleCalendarUrl(task), "_blank");
+                  });
+                }}
+                className="rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-600 transition-colors hover:bg-stone-50 hover:text-blue-600"
+              >
+                📅 Export All to Google Calendar
+              </button>
+            </div>
+          )}
 
           {/* Progress */}
           <div className="space-y-2">
