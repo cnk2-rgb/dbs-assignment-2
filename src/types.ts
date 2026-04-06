@@ -11,6 +11,7 @@ export interface JournalEntry {
   date: string;        // YYYY-MM-DD
   content: string;
   createdAt: number;   // timestamp
+  persist?: boolean;   // if true, skip auto-delete
 }
 
 export interface Ingredient {

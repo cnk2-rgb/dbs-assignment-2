@@ -6,7 +6,15 @@ import { JournalEntry } from "@/types";
 const AUTO_DELETE_DAYS = 30;
 
 export default function JournalPage() {
-  const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [entries, setEntries] = useState<JournalEntry[]>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("journal-entries");
+      if (saved) {
+        try { return JSON.parse(saved); } catch { return []; }
+      }
+    }
+    return [];
+  });
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [hasPassword, setHasPassword] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
@@ -35,10 +43,18 @@ export default function JournalPage() {
     }
   }, []);
 
-  // Auto-delete old entries
+  // Save entries to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem("journal-entries", JSON.stringify(entries));
+  }, [entries]);
+
+  // Auto-delete old entries (skip persisted ones)
   useEffect(() => {
     const cutoff = Date.now() - AUTO_DELETE_DAYS * 24 * 60 * 60 * 1000;
-    setEntries((prev) => prev.filter((e) => e.createdAt > cutoff));
+    setEntries((prev) => {
+      const filtered = prev.filter((e) => e.persist || e.createdAt > cutoff);
+      return filtered.length !== prev.length ? filtered : prev;
+    });
   }, []);
 
   function handleSetPassword(e: React.FormEvent) {
@@ -112,6 +128,12 @@ export default function JournalPage() {
     ]);
     setNewContent("");
     setNewDate(new Date().toISOString().split("T")[0]);
+  }
+
+  function togglePersist(id: string) {
+    setEntries((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, persist: !e.persist } : e))
+    );
   }
 
   function deleteEntry(id: string) {
@@ -317,6 +339,10 @@ export default function JournalPage() {
             });
             const isExpanded = expandedId === entry.id;
 
+            const daysLeft = entry.persist
+              ? null
+              : Math.max(0, Math.ceil((entry.createdAt + AUTO_DELETE_DAYS * 24 * 60 * 60 * 1000 - Date.now()) / (24 * 60 * 60 * 1000)));
+
             return (
               <div
                 key={entry.id}
@@ -324,7 +350,20 @@ export default function JournalPage() {
               >
                 <div className="flex items-start justify-between">
                   <div className="space-y-1 flex-1 min-w-0">
-                    <h3 className="text-sm font-semibold text-stone-900">{dateLabel}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-stone-900">{dateLabel}</h3>
+                      {entry.persist ? (
+                        <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
+                          Kept
+                        </span>
+                      ) : daysLeft !== null ? (
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                          daysLeft <= 7 ? "bg-amber-50 text-amber-700" : "bg-stone-50 text-stone-500"
+                        }`}>
+                          {daysLeft}d left
+                        </span>
+                      ) : null}
+                    </div>
                     {isExpanded ? (
                       <div className="space-y-2 mt-2">
                         <textarea
@@ -355,6 +394,17 @@ export default function JournalPage() {
                   </div>
                   {!isExpanded && (
                     <div className="flex gap-2 shrink-0 ml-4">
+                      <button
+                        onClick={() => togglePersist(entry.id)}
+                        className={`text-xs transition-opacity ${
+                          entry.persist
+                            ? "text-emerald-600 hover:text-stone-500"
+                            : "text-stone-400 opacity-0 hover:text-emerald-600 group-hover:opacity-100"
+                        }`}
+                        title={entry.persist ? "Remove from kept entries" : "Keep forever"}
+                      >
+                        {entry.persist ? "Unkeep" : "Keep"}
+                      </button>
                       <button
                         onClick={() => startEdit(entry)}
                         className="text-xs text-stone-400 opacity-0 transition-opacity hover:text-stone-600 group-hover:opacity-100"
