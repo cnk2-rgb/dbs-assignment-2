@@ -257,15 +257,7 @@ export default function TaskList({ tasks, setTasks }: TaskListProps) {
                         </div>
                       )}
                     </div>
-                    <a
-                      href={getGoogleCalendarUrl(task)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="shrink-0 text-xs text-stone-400 opacity-0 transition-opacity hover:text-blue-600 group-hover:opacity-100"
-                      title="Add to Google Calendar"
-                    >
-                      📅 Export
-                    </a>
+                    <button onClick={() => exportTask(task)} className="shrink-0 text-xs text-stone-400 opacity-0 transition-opacity hover:text-blue-600 group-hover:opacity-100" title="Export to calendar (.ics)">📅 Export</button>
                     <button onClick={() => startEditing(task)} className="shrink-0 text-xs text-stone-400 opacity-0 transition-opacity hover:text-stone-600 group-hover:opacity-100">Edit</button>
                     <button onClick={() => deleteTask(task.id)} className="shrink-0 text-xs text-stone-400 opacity-0 transition-opacity hover:text-red-500 group-hover:opacity-100">Delete</button>
                   </div>
@@ -274,18 +266,14 @@ export default function TaskList({ tasks, setTasks }: TaskListProps) {
             ))}
           </ul>
 
-          {/* Export all to Google Calendar */}
-          {tasks.some((t) => t.dueDate) && (
+          {/* Export all to calendar file */}
+          {tasks.some((t) => !t.completed) && (
             <div className="flex justify-end">
               <button
-                onClick={() => {
-                  tasks.filter((t) => !t.completed).forEach((task) => {
-                    window.open(getGoogleCalendarUrl(task), "_blank");
-                  });
-                }}
+                onClick={exportAllTasks}
                 className="rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-600 transition-colors hover:bg-stone-50 hover:text-blue-600"
               >
-                📅 Export All to Google Calendar
+                📅 Export All to Calendar
               </button>
             </div>
           )}

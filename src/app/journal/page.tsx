@@ -3,14 +3,21 @@
 import { useState, useEffect } from "react";
 import { JournalEntry } from "@/types";
 
-const JOURNAL_PASSWORD = "myjournal";
 const AUTO_DELETE_DAYS = 30;
 
 export default function JournalPage() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [isUnlocked, setIsUnlocked] = useState(false);
+  const [hasPassword, setHasPassword] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
-  const [passwordError, setPasswordError] = useState(false);
+  const [confirmInput, setConfirmInput] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [currentPasswordInput, setCurrentPasswordInput] = useState("");
+  const [newPasswordInput, setNewPasswordInput] = useState("");
+  const [newConfirmInput, setNewConfirmInput] = useState("");
+  const [changePasswordError, setChangePasswordError] = useState("");
+  const [changePasswordSuccess, setChangePasswordSuccess] = useState(false);
 
   const [newDate, setNewDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [newContent, setNewContent] = useState("");
@@ -19,8 +26,12 @@ export default function JournalPage() {
   const [editContent, setEditContent] = useState("");
 
   useEffect(() => {
-    if (typeof window !== "undefined" && sessionStorage.getItem("journal-unlocked") === "true") {
-      setIsUnlocked(true);
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("journal-password");
+      setHasPassword(!!stored);
+      if (sessionStorage.getItem("journal-unlocked") === "true" && stored) {
+        setIsUnlocked(true);
+      }
     }
   }, []);
 
@@ -30,15 +41,60 @@ export default function JournalPage() {
     setEntries((prev) => prev.filter((e) => e.createdAt > cutoff));
   }, []);
 
+  function handleSetPassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (passwordInput.length < 4) {
+      setPasswordError("Password must be at least 4 characters.");
+      return;
+    }
+    if (passwordInput !== confirmInput) {
+      setPasswordError("Passwords do not match.");
+      return;
+    }
+    localStorage.setItem("journal-password", passwordInput);
+    sessionStorage.setItem("journal-unlocked", "true");
+    setHasPassword(true);
+    setIsUnlocked(true);
+    setPasswordError("");
+  }
+
   function handleUnlock(e: React.FormEvent) {
     e.preventDefault();
-    if (passwordInput === JOURNAL_PASSWORD) {
+    const stored = localStorage.getItem("journal-password");
+    if (passwordInput === stored) {
       setIsUnlocked(true);
       sessionStorage.setItem("journal-unlocked", "true");
-      setPasswordError(false);
+      setPasswordError("");
     } else {
-      setPasswordError(true);
+      setPasswordError("Incorrect password. Try again.");
     }
+  }
+
+  function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    const stored = localStorage.getItem("journal-password");
+    if (currentPasswordInput !== stored) {
+      setChangePasswordError("Current password is incorrect.");
+      return;
+    }
+    if (newPasswordInput.length < 4) {
+      setChangePasswordError("New password must be at least 4 characters.");
+      return;
+    }
+    if (newPasswordInput !== newConfirmInput) {
+      setChangePasswordError("New passwords do not match.");
+      return;
+    }
+    localStorage.setItem("journal-password", newPasswordInput);
+    setChangePasswordError("");
+    setChangePasswordSuccess(true);
+    setCurrentPasswordInput("");
+    setNewPasswordInput("");
+    setNewConfirmInput("");
+    setTimeout(() => {
+      setShowChangePassword(false);
+      setChangePasswordSuccess(false);
+    }, 1500);
   }
 
   function addEntry(e: React.FormEvent) {
@@ -78,6 +134,55 @@ export default function JournalPage() {
   }
 
   if (!isUnlocked) {
+    // First time — set a password
+    if (!hasPassword) {
+      return (
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <form onSubmit={handleSetPassword} className="w-full max-w-sm space-y-4">
+            <div className="text-center space-y-2">
+              <div className="text-4xl">🔒</div>
+              <h1 className="text-xl font-bold tracking-tight">Journal</h1>
+              <p className="text-sm text-stone-500">Set a password to protect your journal</p>
+            </div>
+            <input
+              type="password"
+              value={passwordInput}
+              onChange={(e) => { setPasswordInput(e.target.value); setPasswordError(""); }}
+              placeholder="Create a password"
+              autoFocus
+              className={`w-full rounded-lg border px-4 py-3 text-sm outline-none transition-all ${
+                passwordError
+                  ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-2 focus:ring-red-100"
+                  : "border-stone-200 bg-white focus:border-stone-400 focus:ring-2 focus:ring-stone-200"
+              }`}
+            />
+            <input
+              type="password"
+              value={confirmInput}
+              onChange={(e) => { setConfirmInput(e.target.value); setPasswordError(""); }}
+              placeholder="Confirm password"
+              className={`w-full rounded-lg border px-4 py-3 text-sm outline-none transition-all ${
+                passwordError
+                  ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-2 focus:ring-red-100"
+                  : "border-stone-200 bg-white focus:border-stone-400 focus:ring-2 focus:ring-stone-200"
+              }`}
+            />
+            {passwordError && (
+              <p className="text-xs text-red-500 text-center">{passwordError}</p>
+            )}
+            <button
+              type="submit"
+              className="w-full rounded-lg bg-stone-900 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-stone-700"
+            >
+              Set Password
+            </button>
+            <p className="text-xs text-stone-400 text-center">Minimum 4 characters</p>
+          </form>
+        </div>
+      );
+    }
+
+    // Returning user — enter password
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <form onSubmit={handleUnlock} className="w-full max-w-sm space-y-4">
@@ -89,7 +194,7 @@ export default function JournalPage() {
           <input
             type="password"
             value={passwordInput}
-            onChange={(e) => { setPasswordInput(e.target.value); setPasswordError(false); }}
+            onChange={(e) => { setPasswordInput(e.target.value); setPasswordError(""); }}
             placeholder="Password"
             autoFocus
             className={`w-full rounded-lg border px-4 py-3 text-sm outline-none transition-all ${
@@ -99,7 +204,7 @@ export default function JournalPage() {
             }`}
           />
           {passwordError && (
-            <p className="text-xs text-red-500 text-center">Incorrect password. Try again.</p>
+            <p className="text-xs text-red-500 text-center">{passwordError}</p>
           )}
           <button
             type="submit"
@@ -107,7 +212,6 @@ export default function JournalPage() {
           >
             Unlock
           </button>
-          <p className="text-xs text-stone-400 text-center">Hint: myjournal</p>
         </form>
       </div>
     );
@@ -115,12 +219,61 @@ export default function JournalPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Journal</h1>
-        <p className="text-sm text-stone-500 mt-1">
-          Entries auto-delete after {AUTO_DELETE_DAYS} days
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Journal</h1>
+          <p className="text-sm text-stone-500 mt-1">
+            Entries auto-delete after {AUTO_DELETE_DAYS} days
+          </p>
+        </div>
+        <button
+          onClick={() => { setShowChangePassword(!showChangePassword); setChangePasswordError(""); setChangePasswordSuccess(false); }}
+          className="text-xs text-stone-400 hover:text-stone-600 transition-colors mt-1"
+        >
+          Change Password
+        </button>
       </div>
+
+      {showChangePassword && (
+        <form onSubmit={handleChangePassword} className="rounded-xl border border-stone-100 bg-white p-5 space-y-3">
+          <h3 className="text-sm font-semibold text-stone-900">Change Password</h3>
+          <input
+            type="password"
+            value={currentPasswordInput}
+            onChange={(e) => { setCurrentPasswordInput(e.target.value); setChangePasswordError(""); }}
+            placeholder="Current password"
+            className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm outline-none focus:border-stone-400 focus:ring-2 focus:ring-stone-200"
+          />
+          <input
+            type="password"
+            value={newPasswordInput}
+            onChange={(e) => { setNewPasswordInput(e.target.value); setChangePasswordError(""); }}
+            placeholder="New password"
+            className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm outline-none focus:border-stone-400 focus:ring-2 focus:ring-stone-200"
+          />
+          <input
+            type="password"
+            value={newConfirmInput}
+            onChange={(e) => { setNewConfirmInput(e.target.value); setChangePasswordError(""); }}
+            placeholder="Confirm new password"
+            className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm outline-none focus:border-stone-400 focus:ring-2 focus:ring-stone-200"
+          />
+          {changePasswordError && (
+            <p className="text-xs text-red-500">{changePasswordError}</p>
+          )}
+          {changePasswordSuccess && (
+            <p className="text-xs text-emerald-600">Password changed successfully!</p>
+          )}
+          <div className="flex gap-2">
+            <button type="submit" className="rounded-lg bg-stone-900 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-stone-700">
+              Update Password
+            </button>
+            <button type="button" onClick={() => setShowChangePassword(false)} className="rounded-lg border border-stone-200 px-4 py-2 text-xs text-stone-600 transition-colors hover:bg-stone-50">
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
 
       {/* New entry form */}
       <form onSubmit={addEntry} className="space-y-3 rounded-xl border border-stone-100 bg-white p-5">
