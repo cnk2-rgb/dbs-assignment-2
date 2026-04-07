@@ -463,23 +463,22 @@ export default function IngredientsPage() {
                           </div>
                         )}
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
+                      <div className="absolute top-2 right-2 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         {item.category === "pantry" && (
                           <button
                             onClick={(e) => { e.stopPropagation(); startEditPantryItem(item); }}
-                            className="text-sm text-amber-700 opacity-100 transition-colors hover:text-amber-900 p-0.5"
-                            title="Edit item"
+                            className="text-[11px] font-medium text-stone-500 hover:text-stone-800 transition-colors"
                           >
-                            ✎
+                            Edit
                           </button>
                         )}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); deleteIngredient(item.id); }}
+                          className="text-[11px] font-medium text-red-500 hover:text-red-700 transition-colors"
+                        >
+                          Delete
+                        </button>
                       </div>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); deleteIngredient(item.id); }}
-                        className="shrink-0 text-xs opacity-0 transition-opacity hover:opacity-100 group-hover:opacity-60"
-                      >
-                        &times;
-                      </button>
                     </div>
                     )}
                   </div>
