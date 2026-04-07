@@ -209,10 +209,10 @@ export default function IngredientsPage() {
   })).filter((g) => g.items.length > 0);
 
   return (
-    <div className={`${pixel.className} space-y-6 -mx-6 -my-8 min-h-screen bg-[#8b9e6b]`} style={{ marginLeft: 'calc(-50vw + 50%)', marginRight: 'calc(-50vw + 50%)', paddingLeft: 'max(1.5rem, calc(50vw - 28rem))', paddingRight: 'max(1.5rem, calc(50vw - 28rem))', paddingTop: '2rem', paddingBottom: '2rem' }}>
+    <div className="space-y-6 -mx-6 -my-8 min-h-screen bg-[#8b9e6b] font-sans" style={{ marginLeft: 'calc(-50vw + 50%)', marginRight: 'calc(-50vw + 50%)', paddingLeft: 'max(1.5rem, calc(50vw - 28rem))', paddingRight: 'max(1.5rem, calc(50vw - 28rem))', paddingTop: '2rem', paddingBottom: '2rem' }}>
       <div>
-        <h1 className="text-4xl font-bold tracking-tight text-amber-950">My Kitchen</h1>
-        <p className="text-lg text-amber-950/80 mt-1">
+        <h1 className={`${pixel.className} text-4xl font-bold tracking-tight text-amber-950`}>My Kitchen</h1>
+        <p className={`${pixel.className} text-lg text-amber-950/80 mt-1`}>
           {ingredients.length === 0
             ? "Track what's in your kitchen"
             : `${ingredients.length} item${ingredients.length !== 1 ? "s" : ""} on the shelves`}
@@ -323,7 +323,7 @@ export default function IngredientsPage() {
           {grouped.map((group) => (
             <div key={group.category}>
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-sm font-bold text-amber-950">
+                <h2 className={`${pixel.className} text-sm font-bold text-amber-950`}>
                   {CATEGORY_LABELS[group.category]}
                 </h2>
                 {group.category === "pantry" && (

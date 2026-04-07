@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { JournalEntry } from "@/types";
 
 const AUTO_DELETE_DAYS = 30;
@@ -27,10 +28,12 @@ export default function JournalPage() {
   const [changePasswordError, setChangePasswordError] = useState("");
   const [changePasswordSuccess, setChangePasswordSuccess] = useState(false);
 
+  const [newTitle, setNewTitle] = useState("");
   const [newDate, setNewDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [newContent, setNewContent] = useState("");
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
 
   useEffect(() => {
@@ -116,16 +119,19 @@ export default function JournalPage() {
   function addEntry(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = newContent.trim();
+    const titleTrimmed = newTitle.trim() || "Untitled";
     if (!trimmed) return;
     setEntries((prev) => [
       {
         id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+        title: titleTrimmed,
         date: newDate,
         content: trimmed,
         createdAt: Date.now(),
       },
       ...prev,
     ]);
+    setNewTitle("");
     setNewContent("");
     setNewDate(new Date().toISOString().split("T")[0]);
   }
@@ -143,6 +149,7 @@ export default function JournalPage() {
 
   function startEdit(entry: JournalEntry) {
     setExpandedId(entry.id);
+    setEditTitle(entry.title || "");
     setEditContent(entry.content);
   }
 
@@ -150,9 +157,13 @@ export default function JournalPage() {
     const trimmed = editContent.trim();
     if (!trimmed) return;
     setEntries((prev) =>
-      prev.map((e) => (e.id === id ? { ...e, content: trimmed } : e))
+      prev.map((e) => (e.id === id ? { ...e, title: editTitle.trim() || "Untitled", content: trimmed } : e))
     );
     setExpandedId(null);
+  }
+
+  function slugify(text: string): string {
+    return text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "untitled";
   }
 
   if (!isUnlocked) {
@@ -316,6 +327,13 @@ export default function JournalPage() {
             className="rounded-md border border-stone-200 bg-transparent px-2 py-1.5 text-sm outline-none focus:border-stone-400"
           />
         </div>
+        <input
+          type="text"
+          value={newTitle}
+          onChange={(e) => setNewTitle(e.target.value)}
+          placeholder="Entry title"
+          className="w-full rounded-lg border border-stone-200 bg-transparent px-4 py-3 text-sm font-medium outline-none focus:border-stone-400 focus:ring-2 focus:ring-stone-200 transition-all"
+        />
         <textarea
           value={newContent}
           onChange={(e) => setNewContent(e.target.value)}
@@ -345,21 +363,24 @@ export default function JournalPage() {
               month: "long",
               day: "numeric",
             });
-            const isExpanded = expandedId === entry.id;
-
             const daysLeft = entry.persist
               ? null
               : Math.max(0, Math.ceil((entry.createdAt + AUTO_DELETE_DAYS * 24 * 60 * 60 * 1000 - Date.now()) / (24 * 60 * 60 * 1000)));
 
+            const entrySlug = slugify(entry.title || "untitled");
+
             return (
-              <div
+              <Link
                 key={entry.id}
-                className="group rounded-xl border border-amber-200/50 bg-white/80 p-5 transition-shadow hover:shadow-sm"
+                href={`/journal/${entry.date}/${entrySlug}`}
+                className="group block rounded-xl border border-amber-200/50 bg-white/80 p-5 transition-shadow hover:shadow-md cursor-pointer"
               >
                 <div className="flex items-start justify-between">
                   <div className="space-y-1 flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-semibold text-stone-900">{dateLabel}</h3>
+                      <h3 className="text-base font-semibold text-stone-900 group-hover:text-amber-800 transition-colors">
+                        {entry.title || "Untitled"}
+                      </h3>
                       {entry.persist ? (
                         <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
                           Kept
@@ -372,63 +393,29 @@ export default function JournalPage() {
                         </span>
                       ) : null}
                     </div>
-                    {isExpanded ? (
-                      <div className="space-y-2 mt-2">
-                        <textarea
-                          value={editContent}
-                          onChange={(e) => setEditContent(e.target.value)}
-                          rows={4}
-                          autoFocus
-                          className="w-full rounded-lg border border-stone-200 bg-transparent px-3 py-2 text-sm outline-none resize-none focus:border-stone-400"
-                        />
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => saveEdit(entry.id)}
-                            className="text-xs font-medium text-stone-600 hover:text-stone-900"
-                          >
-                            Save
-                          </button>
-                          <button
-                            onClick={() => setExpandedId(null)}
-                            className="text-xs text-stone-400 hover:text-stone-600"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="text-sm text-stone-600 whitespace-pre-wrap">{entry.content}</p>
-                    )}
+                    <p className="text-xs text-stone-400">{dateLabel}</p>
                   </div>
-                  {!isExpanded && (
-                    <div className="flex gap-2 shrink-0 ml-4">
-                      <button
-                        onClick={() => togglePersist(entry.id)}
-                        className={`text-xs transition-opacity ${
-                          entry.persist
-                            ? "text-emerald-600 hover:text-stone-500"
-                            : "text-stone-400 opacity-0 hover:text-emerald-600 group-hover:opacity-100"
-                        }`}
-                        title={entry.persist ? "Remove from kept entries" : "Keep forever"}
-                      >
-                        {entry.persist ? "Unkeep" : "Keep"}
-                      </button>
-                      <button
-                        onClick={() => startEdit(entry)}
-                        className="text-xs text-stone-400 opacity-0 transition-opacity hover:text-stone-600 group-hover:opacity-100"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => deleteEntry(entry.id)}
-                        className="text-xs text-stone-400 opacity-0 transition-opacity hover:text-red-500 group-hover:opacity-100"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex gap-2 shrink-0 ml-4" onClick={(e) => e.preventDefault()}>
+                    <button
+                      onClick={(e) => { e.preventDefault(); togglePersist(entry.id); }}
+                      className={`text-xs transition-opacity ${
+                        entry.persist
+                          ? "text-emerald-600 hover:text-stone-500"
+                          : "text-stone-400 opacity-0 hover:text-emerald-600 group-hover:opacity-100"
+                      }`}
+                      title={entry.persist ? "Remove from kept entries" : "Keep forever"}
+                    >
+                      {entry.persist ? "Unkeep" : "Keep"}
+                    </button>
+                    <button
+                      onClick={(e) => { e.preventDefault(); deleteEntry(entry.id); }}
+                      className="text-xs text-stone-400 opacity-0 transition-opacity hover:text-red-500 group-hover:opacity-100"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>

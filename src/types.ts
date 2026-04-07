@@ -8,6 +8,7 @@ export interface Task {
 
 export interface JournalEntry {
   id: string;
+  title: string;
   date: string;        // YYYY-MM-DD
   content: string;
   createdAt: number;   // timestamp
