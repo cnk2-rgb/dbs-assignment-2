@@ -1,8 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { Silkscreen } from "next/font/google";
 import { Ingredient, Cuisine } from "@/types";
 import { suggestExpiryDate, getMatchingIngredients, suggestCuisine, INGREDIENT_CUISINE } from "@/constants/ingredients";
+
+const pixel = Silkscreen({
+  weight: ["400", "700"],
+  subsets: ["latin"],
+});
 
 const CUISINES: Cuisine[] = ["general", "korean", "japanese", "chinese", "other"];
 
@@ -24,12 +30,12 @@ const CATEGORIES: Ingredient["category"][] = [
 ];
 
 const CATEGORY_COLORS: Record<Ingredient["category"], string> = {
-  produce: "bg-green-50 border-green-200 text-green-800",
-  dairy: "bg-blue-50 border-blue-200 text-blue-800",
-  meat: "bg-red-50 border-red-200 text-red-800",
-  pantry: "bg-amber-50 border-amber-200 text-amber-800",
-  frozen: "bg-cyan-50 border-cyan-200 text-cyan-800",
-  other: "bg-stone-50 border-stone-200 text-stone-800",
+  produce: "bg-[#d4deb3] border-[#a3b07a] text-[#3d4a2a]",
+  dairy: "bg-[#f5e6c8] border-[#d4b98a] text-[#6b4c2a]",
+  meat: "bg-[#e8c4b8] border-[#c49080] text-[#6b2d1a]",
+  pantry: "bg-[#decca8] border-[#b8a080] text-[#4a3520]",
+  frozen: "bg-[#c8dce8] border-[#90b0c4] text-[#2a4a5a]",
+  other: "bg-[#d5cfc5] border-[#a8a090] text-[#4a4540]",
 };
 
 const CATEGORY_LABELS: Record<Ingredient["category"], string> = {
@@ -203,20 +209,23 @@ export default function IngredientsPage() {
   })).filter((g) => g.items.length > 0);
 
   return (
-    <div className="space-y-6">
+    <div className={`${pixel.className} space-y-6 -mx-6 -my-8 min-h-screen bg-[#8b9e6b]`} style={{ marginLeft: 'calc(-50vw + 50%)', marginRight: 'calc(-50vw + 50%)', paddingLeft: 'max(1.5rem, calc(50vw - 28rem))', paddingRight: 'max(1.5rem, calc(50vw - 28rem))', paddingTop: '2rem', paddingBottom: '2rem' }}>
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">My Fridge</h1>
-        <p className="text-sm text-stone-500 mt-1">
+        <h1 className="text-4xl font-bold tracking-tight text-amber-950">My Kitchen</h1>
+        <p className="text-lg text-amber-950/80 mt-1">
           {ingredients.length === 0
-            ? "Track what's in your fridge"
-            : `${ingredients.length} item${ingredients.length !== 1 ? "s" : ""} tracked`}
+            ? "Track what's in your kitchen"
+            : `${ingredients.length} item${ingredients.length !== 1 ? "s" : ""} on the shelves`}
+        </p>
+        <p className="text-sm text-amber-950/70 mt-1">
+          Click ingredients to select them. Then you can search for recipes including those ingredients!
         </p>
       </div>
 
       {/* Add form */}
-      <form onSubmit={addIngredient} className="flex flex-wrap gap-2 items-end rounded-xl border border-stone-100 bg-white p-5">
+      <form onSubmit={addIngredient} className="flex flex-wrap gap-2 items-end rounded-xl border-2 border-amber-900/30 bg-[#c4a882] p-5 shadow-md">
         <div className="flex-1 min-w-[180px] space-y-1 relative" ref={suggestionsRef}>
-          <label className="text-xs font-medium text-stone-500">Ingredient</label>
+          <label className="text-xs font-medium text-amber-950/70">Ingredient</label>
           <input
             type="text"
             value={name}
@@ -224,17 +233,17 @@ export default function IngredientsPage() {
             onBlur={handleNameBlur}
             onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
             placeholder="e.g. Chicken breast"
-            className="w-full rounded-lg border border-stone-200 bg-transparent px-3 py-2.5 text-sm outline-none focus:border-stone-400 focus:ring-2 focus:ring-stone-200 transition-all"
+            className="w-full rounded-md border-2 border-amber-900/30 bg-amber-50/80 px-3 py-2.5 text-sm text-amber-950 outline-none focus:border-amber-700/50 focus:ring-2 focus:ring-amber-300/50 transition-all"
           />
           {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute z-10 top-full mt-1 w-full rounded-lg border border-stone-200 bg-white shadow-lg max-h-40 overflow-y-auto">
+            <div className="absolute z-10 top-full mt-1 w-full rounded-md border-2 border-amber-900/30 bg-[#f5e6c8] shadow-lg max-h-40 overflow-y-auto">
               {suggestions.map((s) => (
                 <button
                   key={s}
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => selectSuggestion(s)}
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-stone-50 transition-colors capitalize"
+                  className="w-full text-left px-3 py-2 text-sm text-amber-950 hover:bg-[#e8d4b0] transition-colors capitalize"
                 >
                   {s}
                 </button>
@@ -243,20 +252,20 @@ export default function IngredientsPage() {
           )}
         </div>
         <div className="w-40 space-y-1">
-          <label className="text-xs font-medium text-stone-500">Expiry Date</label>
+          <label className="text-xs font-medium text-amber-950/70">Expiry Date</label>
           <input
             type="date"
             value={expiry}
             onChange={(e) => setExpiry(e.target.value)}
-            className="w-full rounded-lg border border-stone-200 bg-transparent px-3 py-2.5 text-sm outline-none focus:border-stone-400 focus:ring-2 focus:ring-stone-200 transition-all"
+            className="w-full rounded-md border-2 border-amber-900/30 bg-amber-50/80 px-3 py-2.5 text-sm text-amber-950 outline-none focus:border-amber-700/50 focus:ring-2 focus:ring-amber-300/50 transition-all"
           />
         </div>
         <div className="w-36 space-y-1">
-          <label className="text-xs font-medium text-stone-500">Category</label>
+          <label className="text-xs font-medium text-amber-950/70">Category</label>
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value as Ingredient["category"])}
-            className="w-full rounded-lg border border-stone-200 bg-transparent px-3 py-2.5 text-sm outline-none focus:border-stone-400"
+            className="w-full rounded-md border-2 border-amber-900/30 bg-amber-50/80 px-3 py-2.5 text-sm text-amber-950 outline-none focus:border-amber-700/50"
           >
             {CATEGORIES.map((cat) => (
               <option key={cat} value={cat}>
@@ -267,11 +276,11 @@ export default function IngredientsPage() {
         </div>
         {category === "pantry" && (
           <div className="w-32 space-y-1">
-            <label className="text-xs font-medium text-stone-500">Cuisine</label>
+            <label className="text-xs font-medium text-amber-950/70">Cuisine</label>
             <select
               value={cuisine}
               onChange={(e) => setCuisine(e.target.value as Cuisine)}
-              className="w-full rounded-lg border border-stone-200 bg-transparent px-3 py-2.5 text-sm outline-none focus:border-stone-400"
+              className="w-full rounded-md border-2 border-amber-900/30 bg-amber-50/80 px-3 py-2.5 text-sm text-amber-950 outline-none focus:border-amber-700/50"
             >
               {CUISINES.map((c) => (
                 <option key={c} value={c}>
@@ -283,7 +292,7 @@ export default function IngredientsPage() {
         )}
         <button
           type="submit"
-          className="rounded-lg bg-stone-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-stone-700"
+          className="rounded-lg bg-amber-900 px-5 py-2.5 text-sm font-medium text-amber-50 transition-colors hover:bg-amber-800 shadow-sm"
         >
           Add
         </button>
@@ -291,13 +300,13 @@ export default function IngredientsPage() {
 
       {/* Search recipes bar */}
       {selectedIds.size > 0 && (
-        <div className="flex items-center justify-between rounded-xl border border-stone-100 bg-white p-4">
-          <span className="text-sm text-stone-600">
+        <div className="flex items-center justify-between rounded-xl border-2 border-amber-900/30 bg-[#c4a882] p-4 shadow-md">
+          <span className="text-sm text-amber-950">
             {selectedIds.size} ingredient{selectedIds.size !== 1 ? "s" : ""} selected
           </span>
           <button
             onClick={handleSearchRecipes}
-            className="rounded-lg bg-stone-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-stone-700"
+            className="rounded-lg bg-amber-900 px-5 py-2.5 text-sm font-medium text-amber-50 transition-colors hover:bg-amber-800 shadow-sm"
           >
             Search Recipes
           </button>
@@ -306,15 +315,15 @@ export default function IngredientsPage() {
 
       {/* Grouped ingredients */}
       {grouped.length === 0 ? (
-        <p className="text-center text-sm text-stone-400 py-8">
-          No ingredients yet. Add some above to start tracking.
+        <p className="text-center text-sm text-amber-950/40 py-8">
+          Your kitchen shelves are empty. Add some ingredients above.
         </p>
       ) : (
         <div className="space-y-6">
           {grouped.map((group) => (
             <div key={group.category}>
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-sm font-semibold text-stone-700">
+                <h2 className="text-sm font-bold text-amber-950">
                   {CATEGORY_LABELS[group.category]}
                 </h2>
                 {group.category === "pantry" && (
@@ -331,9 +340,9 @@ export default function IngredientsPage() {
                   <div
                     key={item.id}
                     onClick={() => toggleSelect(item.id)}
-                    className={`group relative rounded-lg border p-3 transition-all hover:shadow-sm cursor-pointer ${
+                    className={`group relative rounded-lg border-2 p-3 transition-all hover:shadow-md cursor-pointer ${
                       CATEGORY_COLORS[item.category]
-                    } ${selectedIds.has(item.id) ? "ring-2 ring-stone-900" : ""}`}
+                    } ${selectedIds.has(item.id) ? "ring-2 ring-amber-700" : ""}`}
                   >
                     {getExpiryStatus(item.expiry) === "expired" && (
                       <div className="absolute -top-1.5 -right-1.5 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-medium text-white">
@@ -467,7 +476,7 @@ export default function IngredientsPage() {
                         {item.category === "pantry" && (
                           <button
                             onClick={(e) => { e.stopPropagation(); startEditPantryItem(item); }}
-                            className="text-[11px] font-medium text-stone-500 hover:text-stone-800 transition-colors"
+                            className="text-[11px] font-medium text-amber-700 hover:text-amber-900 transition-colors"
                           >
                             Edit
                           </button>
