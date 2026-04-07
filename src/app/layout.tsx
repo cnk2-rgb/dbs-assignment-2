@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Silkscreen } from "next/font/google";
 import Navigation from "@/components/Navigation";
+import SpotifyBar from "@/components/SpotifyBar";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -36,6 +37,7 @@ export default function RootLayout({
         <main className="flex-1 mx-auto w-full max-w-4xl px-6 py-8">
           {children}
         </main>
+        <SpotifyBar />
       </body>
     </html>
   );

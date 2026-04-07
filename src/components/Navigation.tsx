@@ -17,7 +17,7 @@ export default function Navigation() {
     <nav className="border-b border-[#4a2e20] bg-[#5c3d2e]/95 backdrop-blur-sm sticky top-0 z-50">
       <div className="mx-auto max-w-4xl px-6 flex items-center justify-between h-14">
         <Link href="/" className="font-pixel text-lg font-bold tracking-tight text-amber-100">
-          Productivity
+          Clarice&apos;s Notebook
         </Link>
         <div className="flex gap-1">
           {links.map((link) => {

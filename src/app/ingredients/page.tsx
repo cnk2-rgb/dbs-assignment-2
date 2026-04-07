@@ -47,8 +47,102 @@ const CATEGORY_LABELS: Record<Ingredient["category"], string> = {
   other: "Other",
 };
 
+const MAX_FRIDGE_ITEMS = 25;
+const FRIDGE_ROWS = 5;
+
+function PixelFridge({ ingredients }: { ingredients: Ingredient[] }) {
+  const fillLevel = Math.min(ingredients.length / MAX_FRIDGE_ITEMS, 1);
+  const filledRows = Math.round(fillLevel * FRIDGE_ROWS);
+
+  // Count by category for coloring the rows
+  const catCounts: Record<string, number> = {};
+  for (const ing of ingredients) {
+    catCounts[ing.category] = (catCounts[ing.category] || 0) + 1;
+  }
+  // Sort categories by count descending to fill from bottom
+  const sortedCats = Object.entries(catCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([cat]) => cat as Ingredient["category"]);
+
+  const ROW_COLORS: Record<Ingredient["category"], string> = {
+    produce: "#b8c98a",
+    dairy: "#e8d4a8",
+    meat: "#d4a898",
+    pantry: "#c8b490",
+    frozen: "#a8c4d4",
+    other: "#c0b8a8",
+  };
+
+  // Assign colors to filled rows based on top categories
+  const rowColors: string[] = [];
+  for (let i = 0; i < filledRows; i++) {
+    const cat = sortedCats[i % sortedCats.length];
+    rowColors.push(cat ? ROW_COLORS[cat] : "#b8c98a");
+  }
+
+  return (
+    <div className="flex flex-col items-center">
+      {/* Fridge top / freezer */}
+      <div className="relative" style={{ imageRendering: "pixelated" }}>
+        {/* Freezer compartment */}
+        <div
+          className="border-4 border-[#4a3520] rounded-t-lg bg-[#d8e8f0]"
+          style={{ width: 72, height: 28 }}
+        >
+          <div className="flex items-center justify-center h-full">
+            <div className="w-8 h-0.5 bg-[#4a3520] rounded-full" />
+          </div>
+        </div>
+        {/* Main fridge body */}
+        <div
+          className="border-4 border-t-0 border-[#4a3520] rounded-b-lg bg-[#f0ece4] relative overflow-hidden"
+          style={{ width: 72, height: 80 }}
+        >
+          {/* Shelves + fill */}
+          <div className="absolute inset-0 flex flex-col-reverse">
+            {Array.from({ length: FRIDGE_ROWS }).map((_, i) => (
+              <div
+                key={i}
+                className="border-t border-[#4a3520]/20 transition-all duration-500"
+                style={{
+                  height: `${100 / FRIDGE_ROWS}%`,
+                  backgroundColor: i < filledRows ? rowColors[i] : "transparent",
+                  opacity: i < filledRows ? 0.7 : 0,
+                }}
+              />
+            ))}
+          </div>
+          {/* Door handle */}
+          <div className="absolute right-1 top-1/2 -translate-y-1/2 w-1.5 h-6 rounded-full bg-[#4a3520]" />
+        </div>
+        {/* Feet */}
+        <div className="flex justify-between px-2" style={{ width: 72 }}>
+          <div className="w-2 h-1.5 bg-[#4a3520] rounded-b" />
+          <div className="w-2 h-1.5 bg-[#4a3520] rounded-b" />
+        </div>
+      </div>
+      {/* Label */}
+      <p className={`${pixel.className} text-sm text-amber-950/60 mt-2 text-center`}>
+        {ingredients.length === 0
+          ? "Empty!"
+          : ingredients.length >= MAX_FRIDGE_ITEMS
+          ? "Full!"
+          : `${Math.round(fillLevel * 100)}%`}
+      </p>
+    </div>
+  );
+}
+
 export default function IngredientsPage() {
-  const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+  const [ingredients, setIngredients] = useState<Ingredient[]>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("ingredients");
+      if (saved) {
+        try { return JSON.parse(saved); } catch { return []; }
+      }
+    }
+    return [];
+  });
   const [name, setName] = useState("");
   const [expiry, setExpiry] = useState("");
   const [category, setCategory] = useState<Ingredient["category"]>("produce");
@@ -63,6 +157,10 @@ export default function IngredientsPage() {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestionsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    localStorage.setItem("ingredients", JSON.stringify(ingredients));
+  }, [ingredients]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -210,16 +308,19 @@ export default function IngredientsPage() {
 
   return (
     <div className="space-y-6 -mx-6 -my-8 min-h-screen bg-[#8b9e6b] font-sans" style={{ marginLeft: 'calc(-50vw + 50%)', marginRight: 'calc(-50vw + 50%)', paddingLeft: 'max(1.5rem, calc(50vw - 28rem))', paddingRight: 'max(1.5rem, calc(50vw - 28rem))', paddingTop: '2rem', paddingBottom: '2rem' }}>
-      <div>
-        <h1 className={`${pixel.className} text-4xl font-bold tracking-tight text-amber-950`}>My Kitchen</h1>
-        <p className={`${pixel.className} text-lg text-amber-950/80 mt-1`}>
-          {ingredients.length === 0
-            ? "Track what's in your kitchen"
-            : `${ingredients.length} item${ingredients.length !== 1 ? "s" : ""} on the shelves`}
-        </p>
-        <p className="text-sm text-amber-950/70 mt-1">
-          Click ingredients to select them. Then you can search for recipes including those ingredients!
-        </p>
+      <div className="flex items-start gap-6">
+        <div className="flex-1">
+          <h1 className={`${pixel.className} text-4xl font-bold tracking-tight text-amber-950`}>My Kitchen</h1>
+          <p className={`${pixel.className} text-lg text-amber-950/80 mt-1`}>
+            {ingredients.length === 0
+              ? "Track what's in your kitchen"
+              : `${ingredients.length} item${ingredients.length !== 1 ? "s" : ""} on the shelves`}
+          </p>
+          <p className="text-sm text-amber-950/70 mt-1">
+            Click ingredients to select them. Then you can search for recipes including those ingredients!
+          </p>
+        </div>
+        <PixelFridge ingredients={ingredients} />
       </div>
 
       {/* Add form */}

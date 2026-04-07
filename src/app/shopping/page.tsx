@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ShoppingList, ShoppingItem } from "@/types";
+import { ShoppingList, ShoppingItem, Ingredient } from "@/types";
 
 const genId = () => Date.now().toString(36) + Math.random().toString(36).slice(2);
 const DEFAULT_STORES = ["Grocery", "Costco", "Target"];
@@ -38,6 +38,16 @@ export default function ShoppingPage() {
   const [editQty, setEditQty] = useState("");
   // Track which deferred item has its "add to list" picker open
   const [addingToListId, setAddingToListId] = useState<string | null>(null);
+  const [fridgeIngredients, setFridgeIngredients] = useState<Ingredient[]>([]);
+  const [fridgeWarning, setFridgeWarning] = useState<string | null>(null);
+
+  // Load fridge ingredients from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("ingredients");
+    if (saved) {
+      try { setFridgeIngredients(JSON.parse(saved)); } catch { /* ignore */ }
+    }
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("shopping-lists", JSON.stringify(lists));
@@ -96,6 +106,16 @@ export default function ShoppingPage() {
   const addItem = () => {
     const name = newItemName.trim();
     if (!name || !expandedList) return;
+
+    // Check if item is already in the fridge
+    const inFridge = fridgeIngredients.find(
+      (ing) => ing.name.toLowerCase() === name.toLowerCase()
+    );
+    if (inFridge) {
+      setFridgeWarning(`"${inFridge.name}" is already in your fridge!`);
+      setTimeout(() => setFridgeWarning(null), 4000);
+    }
+
     const store = newItemStore || expandedList.stores[0] || "General";
     const item: ShoppingItem = {
       id: genId(),
@@ -384,6 +404,14 @@ export default function ShoppingPage() {
                             style={{ width: `${(checkedCount / totalCount) * 100}%` }}
                           />
                         </div>
+                      </div>
+                    )}
+
+                    {/* Fridge warning */}
+                    {fridgeWarning && (
+                      <div className="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
+                        <span>&#9888;</span>
+                        <span>{fridgeWarning}</span>
                       </div>
                     )}
 
