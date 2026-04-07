@@ -65,10 +65,10 @@ Port and polish the daily-planner's TaskList and Calendar into this app's home p
 - Click entry to expand/edit inline
 
 #### Ingredients (`/ingredients`)
-- Form to add ingredients (name, quantity, category)
+- Form to add ingredients (name, expiry date, category)
 - Display grouped by category in card/grid layout
-- Edit quantity inline, delete items
-- Visual indicator for items added > 7 days ago ("might be expiring")
+- Edit expiry date inline, delete items
+- Visual indicators: "Expired" badge (past expiry) and "Expiring soon" badge (within 3 days)
 
 ### Data Models
 
@@ -91,7 +91,7 @@ interface JournalEntry {
 interface Ingredient {
   id: string;
   name: string;
-  quantity: string;
+  expiry: string;      // YYYY-MM-DD
   category: 'produce' | 'dairy' | 'meat' | 'pantry' | 'frozen' | 'other';
   addedDate: string;   // YYYY-MM-DD
 }
@@ -112,3 +112,6 @@ interface Ingredient {
 7. Polish design — typography, spacing, animations, color
 8. Configure Playwright MCP and verify interactions
 9. Deploy to Vercel
+
+### Testing
+If functionality is created, test by making 1-4 sample items and testing the functionality just implemented on those sample items. 

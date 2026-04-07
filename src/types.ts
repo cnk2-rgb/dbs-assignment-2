@@ -17,7 +17,7 @@ export interface JournalEntry {
 export interface Ingredient {
   id: string;
   name: string;
-  quantity: string;
+  expiry: string;      // YYYY-MM-DD
   category: 'produce' | 'dairy' | 'meat' | 'pantry' | 'frozen' | 'other';
   addedDate: string;   // YYYY-MM-DD
 }

@@ -33,11 +33,13 @@ const CATEGORY_LABELS: Record<Ingredient["category"], string> = {
 export default function IngredientsPage() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [name, setName] = useState("");
-  const [quantity, setQuantity] = useState("");
+  const [expiry, setExpiry] = useState("");
   const [category, setCategory] = useState<Ingredient["category"]>("produce");
 
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editQuantity, setEditQuantity] = useState("");
+  const [editExpiry, setEditExpiry] = useState("");
+  const [editName, setEditName] = useState("");
+  const [editCategory, setEditCategory] = useState<Ingredient["category"]>("pantry");
 
   function addIngredient(e: React.FormEvent) {
     e.preventDefault();
@@ -48,37 +50,69 @@ export default function IngredientsPage() {
       {
         id: Date.now().toString(36) + Math.random().toString(36).slice(2),
         name: trimmed,
-        quantity: quantity.trim() || "1",
+        expiry: expiry || "",
         category,
         addedDate: new Date().toISOString().split("T")[0],
       },
     ]);
     setName("");
-    setQuantity("");
+    setExpiry("");
   }
 
   function deleteIngredient(id: string) {
     setIngredients((prev) => prev.filter((i) => i.id !== id));
   }
 
-  function startEditQuantity(ingredient: Ingredient) {
-    setEditingId(ingredient.id);
-    setEditQuantity(ingredient.quantity);
+  function clearCategory(category: Ingredient["category"]) {
+    setIngredients((prev) => prev.filter((i) => i.category !== category));
   }
 
-  function saveQuantity(id: string) {
-    const trimmed = editQuantity.trim();
+  function startEditExpiry(ingredient: Ingredient) {
+    setEditingId(ingredient.id);
+    setEditExpiry(ingredient.expiry);
+    setEditName(ingredient.name);
+    setEditCategory(ingredient.category);
+  }
+
+  function startEditPantryItem(ingredient: Ingredient) {
+    setEditingId(ingredient.id);
+    setEditName(ingredient.name);
+    setEditExpiry(ingredient.expiry);
+    setEditCategory(ingredient.category);
+  }
+
+  function savePantryItem(id: string) {
+    const trimmed = editName.trim();
     if (!trimmed) return;
     setIngredients((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, quantity: trimmed } : i))
+      prev.map((i) =>
+        i.id === id ? { ...i, name: trimmed, expiry: editExpiry, category: editCategory } : i
+      )
     );
     setEditingId(null);
   }
 
-  function isExpiring(addedDate: string) {
-    const added = new Date(addedDate + "T00:00:00").getTime();
+  function saveExpiry(id: string) {
+    setIngredients((prev) =>
+      prev.map((i) => (i.id === id ? { ...i, expiry: editExpiry } : i))
+    );
+    setEditingId(null);
+  }
+
+  function getExpiryStatus(expiry: string): "expired" | "soon" | "ok" | "none" {
+    if (!expiry) return "none";
+    const expiryDate = new Date(expiry + "T00:00:00").getTime();
     const now = Date.now();
-    return now - added > 7 * 24 * 60 * 60 * 1000;
+    const daysLeft = (expiryDate - now) / (24 * 60 * 60 * 1000);
+    if (daysLeft < 0) return "expired";
+    if (daysLeft <= 3) return "soon";
+    return "ok";
+  }
+
+  function formatExpiry(expiry: string): string {
+    if (!expiry) return "No expiry set";
+    const date = new Date(expiry + "T00:00:00");
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   }
 
   // Group by category
@@ -110,13 +144,12 @@ export default function IngredientsPage() {
             className="w-full rounded-lg border border-stone-200 bg-transparent px-3 py-2.5 text-sm outline-none focus:border-stone-400 focus:ring-2 focus:ring-stone-200 transition-all"
           />
         </div>
-        <div className="w-28 space-y-1">
-          <label className="text-xs font-medium text-stone-500">Quantity</label>
+        <div className="w-40 space-y-1">
+          <label className="text-xs font-medium text-stone-500">Expiry Date</label>
           <input
-            type="text"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-            placeholder="e.g. 2 lbs"
+            type="date"
+            value={expiry}
+            onChange={(e) => setExpiry(e.target.value)}
             className="w-full rounded-lg border border-stone-200 bg-transparent px-3 py-2.5 text-sm outline-none focus:border-stone-400 focus:ring-2 focus:ring-stone-200 transition-all"
           />
         </div>
@@ -151,9 +184,19 @@ export default function IngredientsPage() {
         <div className="space-y-6">
           {grouped.map((group) => (
             <div key={group.category}>
-              <h2 className="text-sm font-semibold text-stone-700 mb-2">
-                {CATEGORY_LABELS[group.category]}
-              </h2>
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-sm font-semibold text-stone-700">
+                  {CATEGORY_LABELS[group.category]}
+                </h2>
+                {group.category === "pantry" && (
+                  <button
+                    onClick={() => clearCategory("pantry")}
+                    className="text-xs text-red-500 hover:text-red-700 transition-colors"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {group.items.map((item) => (
                   <div
@@ -162,11 +205,72 @@ export default function IngredientsPage() {
                       CATEGORY_COLORS[item.category]
                     }`}
                   >
-                    {isExpiring(item.addedDate) && (
-                      <div className="absolute -top-1.5 -right-1.5 rounded-full bg-orange-500 px-1.5 py-0.5 text-[10px] font-medium text-white">
-                        Check freshness
+                    {getExpiryStatus(item.expiry) === "expired" && (
+                      <div className="absolute -top-1.5 -right-1.5 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                        Expired
                       </div>
                     )}
+                    {getExpiryStatus(item.expiry) === "soon" && (
+                      <div className="absolute -top-1.5 -right-1.5 rounded-full bg-orange-500 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                        Expiring soon
+                      </div>
+                    )}
+                    {/* Full edit form for pantry items */}
+                    {editingId === item.id && item.category === "pantry" ? (
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          savePantryItem(item.id);
+                        }}
+                        className="space-y-2"
+                      >
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-medium opacity-60">Name</label>
+                          <input
+                            type="text"
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            autoFocus
+                            className="w-full rounded border border-current/20 bg-transparent px-2 py-1 text-sm outline-none"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-medium opacity-60">Expiry</label>
+                          <input
+                            type="date"
+                            value={editExpiry}
+                            onChange={(e) => setEditExpiry(e.target.value)}
+                            className="w-full rounded border border-current/20 bg-transparent px-2 py-1 text-xs outline-none"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-medium opacity-60">Category</label>
+                          <select
+                            value={editCategory}
+                            onChange={(e) => setEditCategory(e.target.value as Ingredient["category"])}
+                            className="w-full rounded border border-current/20 bg-transparent px-2 py-1 text-xs outline-none"
+                          >
+                            {CATEGORIES.map((cat) => (
+                              <option key={cat} value={cat}>
+                                {CATEGORY_LABELS[cat]}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="flex gap-2 pt-1">
+                          <button type="submit" className="text-xs font-medium opacity-70 hover:opacity-100">
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingId(null)}
+                            className="text-xs opacity-50 hover:opacity-100"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
                     <div className="flex items-start justify-between">
                       <div className="min-w-0">
                         <div className="font-medium text-sm truncate">{item.name}</div>
@@ -174,16 +278,16 @@ export default function IngredientsPage() {
                           <form
                             onSubmit={(e) => {
                               e.preventDefault();
-                              saveQuantity(item.id);
+                              saveExpiry(item.id);
                             }}
                             className="flex items-center gap-1 mt-1"
                           >
                             <input
-                              type="text"
-                              value={editQuantity}
-                              onChange={(e) => setEditQuantity(e.target.value)}
+                              type="date"
+                              value={editExpiry}
+                              onChange={(e) => setEditExpiry(e.target.value)}
                               autoFocus
-                              className="w-20 rounded border border-current/20 bg-transparent px-1.5 py-0.5 text-xs outline-none"
+                              className="w-32 rounded border border-current/20 bg-transparent px-1.5 py-0.5 text-xs outline-none"
                             />
                             <button type="submit" className="text-xs font-medium opacity-70 hover:opacity-100">
                               Save
@@ -191,11 +295,27 @@ export default function IngredientsPage() {
                           </form>
                         ) : (
                           <div
-                            onClick={() => startEditQuantity(item)}
-                            className="text-xs opacity-70 mt-0.5 cursor-pointer hover:opacity-100"
+                            onClick={() => item.category === "pantry" ? startEditPantryItem(item) : startEditExpiry(item)}
+                            className={`text-xs mt-0.5 cursor-pointer hover:opacity-100 ${
+                              getExpiryStatus(item.expiry) === "expired"
+                                ? "text-red-600 font-medium"
+                                : getExpiryStatus(item.expiry) === "soon"
+                                ? "text-orange-600 font-medium"
+                                : "opacity-70"
+                            }`}
                           >
-                            {item.quantity}
+                            {formatExpiry(item.expiry)}
                           </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {item.category === "pantry" && (
+                          <button
+                            onClick={() => startEditPantryItem(item)}
+                            className="text-xs opacity-0 transition-opacity hover:opacity-100 group-hover:opacity-60"
+                          >
+                            ✎
+                          </button>
                         )}
                       </div>
                       <button
@@ -205,6 +325,7 @@ export default function IngredientsPage() {
                         &times;
                       </button>
                     </div>
+                    )}
                   </div>
                 ))}
               </div>
