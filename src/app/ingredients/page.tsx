@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Ingredient } from "@/types";
+import { suggestExpiryDate } from "@/constants/ingredients";
 
 const CATEGORIES: Ingredient["category"][] = [
   "produce",
@@ -40,6 +41,7 @@ export default function IngredientsPage() {
   const [editExpiry, setEditExpiry] = useState("");
   const [editName, setEditName] = useState("");
   const [editCategory, setEditCategory] = useState<Ingredient["category"]>("pantry");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   function addIngredient(e: React.FormEvent) {
     e.preventDefault();
@@ -59,12 +61,38 @@ export default function IngredientsPage() {
     setExpiry("");
   }
 
+  function handleNameBlur() {
+    if (expiry) return;
+    const suggested = suggestExpiryDate(name);
+    if (suggested) setExpiry(suggested);
+  }
+
   function deleteIngredient(id: string) {
     setIngredients((prev) => prev.filter((i) => i.id !== id));
+    setSelectedIds((prev) => { const next = new Set(prev); next.delete(id); return next; });
   }
 
   function clearAll() {
     setIngredients([]);
+    setSelectedIds(new Set());
+  }
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function handleSearchRecipes() {
+    const selectedNames = ingredients
+      .filter((i) => selectedIds.has(i.id))
+      .map((i) => i.name);
+    if (selectedNames.length === 0) return;
+    const query = `site:smittenkitchen.com ${selectedNames.join(" ")}`;
+    window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, "_blank", "noopener,noreferrer");
   }
 
   function startEditExpiry(ingredient: Ingredient) {
@@ -140,6 +168,7 @@ export default function IngredientsPage() {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            onBlur={handleNameBlur}
             placeholder="e.g. Chicken breast"
             className="w-full rounded-lg border border-stone-200 bg-transparent px-3 py-2.5 text-sm outline-none focus:border-stone-400 focus:ring-2 focus:ring-stone-200 transition-all"
           />
@@ -175,6 +204,21 @@ export default function IngredientsPage() {
         </button>
       </form>
 
+      {/* Search recipes bar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center justify-between rounded-xl border border-stone-100 bg-white p-4">
+          <span className="text-sm text-stone-600">
+            {selectedIds.size} ingredient{selectedIds.size !== 1 ? "s" : ""} selected
+          </span>
+          <button
+            onClick={handleSearchRecipes}
+            className="rounded-lg bg-stone-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-stone-700"
+          >
+            Search Recipes
+          </button>
+        </div>
+      )}
+
       {/* Grouped ingredients */}
       {grouped.length === 0 ? (
         <p className="text-center text-sm text-stone-400 py-8">
@@ -201,9 +245,10 @@ export default function IngredientsPage() {
                 {group.items.map((item) => (
                   <div
                     key={item.id}
-                    className={`group relative rounded-lg border p-3 transition-shadow hover:shadow-sm ${
+                    onClick={() => toggleSelect(item.id)}
+                    className={`group relative rounded-lg border p-3 transition-all hover:shadow-sm cursor-pointer ${
                       CATEGORY_COLORS[item.category]
-                    }`}
+                    } ${selectedIds.has(item.id) ? "ring-2 ring-stone-900" : ""}`}
                   >
                     {getExpiryStatus(item.expiry) === "expired" && (
                       <div className="absolute -top-1.5 -right-1.5 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-medium text-white">
@@ -218,6 +263,7 @@ export default function IngredientsPage() {
                     {/* Full edit form for pantry items */}
                     {editingId === item.id && item.category === "pantry" ? (
                       <form
+                        onClick={(e) => e.stopPropagation()}
                         onSubmit={(e) => {
                           e.preventDefault();
                           savePantryItem(item.id);
@@ -276,6 +322,7 @@ export default function IngredientsPage() {
                         <div className="font-medium text-sm truncate">{item.name}</div>
                         {editingId === item.id ? (
                           <form
+                            onClick={(e) => e.stopPropagation()}
                             onSubmit={(e) => {
                               e.preventDefault();
                               saveExpiry(item.id);
@@ -295,7 +342,7 @@ export default function IngredientsPage() {
                           </form>
                         ) : (
                           <div
-                            onClick={() => item.category === "pantry" ? startEditPantryItem(item) : startEditExpiry(item)}
+                            onClick={(e) => { e.stopPropagation(); item.category === "pantry" ? startEditPantryItem(item) : startEditExpiry(item); }}
                             className={`text-xs mt-0.5 cursor-pointer hover:opacity-100 ${
                               getExpiryStatus(item.expiry) === "expired"
                                 ? "text-red-600 font-medium"
@@ -311,15 +358,16 @@ export default function IngredientsPage() {
                       <div className="flex items-center gap-1 shrink-0">
                         {item.category === "pantry" && (
                           <button
-                            onClick={() => startEditPantryItem(item)}
-                            className="text-xs opacity-0 transition-opacity hover:opacity-100 group-hover:opacity-60"
+                            onClick={(e) => { e.stopPropagation(); startEditPantryItem(item); }}
+                            className="text-sm text-amber-700 opacity-100 transition-colors hover:text-amber-900 p-0.5"
+                            title="Edit item"
                           >
                             ✎
                           </button>
                         )}
                       </div>
                       <button
-                        onClick={() => deleteIngredient(item.id)}
+                        onClick={(e) => { e.stopPropagation(); deleteIngredient(item.id); }}
                         className="shrink-0 text-xs opacity-0 transition-opacity hover:opacity-100 group-hover:opacity-60"
                       >
                         &times;
