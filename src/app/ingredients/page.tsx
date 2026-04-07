@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Ingredient } from "@/types";
-import { suggestExpiryDate } from "@/constants/ingredients";
+import { suggestExpiryDate, getMatchingIngredients } from "@/constants/ingredients";
 
 const CATEGORIES: Ingredient["category"][] = [
   "produce",
@@ -42,6 +42,19 @@ export default function IngredientsPage() {
   const [editName, setEditName] = useState("");
   const [editCategory, setEditCategory] = useState<Ingredient["category"]>("pantry");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   function addIngredient(e: React.FormEvent) {
     e.preventDefault();
@@ -61,10 +74,30 @@ export default function IngredientsPage() {
     setExpiry("");
   }
 
+  function handleNameChange(value: string) {
+    setName(value);
+    const matches = getMatchingIngredients(value);
+    setSuggestions(matches);
+    setShowSuggestions(matches.length > 0);
+  }
+
+  function selectSuggestion(keyword: string) {
+    const capitalized = keyword.charAt(0).toUpperCase() + keyword.slice(1);
+    setName(capitalized);
+    setShowSuggestions(false);
+    if (!expiry) {
+      const suggested = suggestExpiryDate(keyword);
+      if (suggested) setExpiry(suggested);
+    }
+  }
+
   function handleNameBlur() {
-    if (expiry) return;
-    const suggested = suggestExpiryDate(name);
-    if (suggested) setExpiry(suggested);
+    // Delay to allow click on suggestion
+    setTimeout(() => {
+      if (expiry) return;
+      const suggested = suggestExpiryDate(name);
+      if (suggested) setExpiry(suggested);
+    }, 150);
   }
 
   function deleteIngredient(id: string) {
@@ -162,16 +195,32 @@ export default function IngredientsPage() {
 
       {/* Add form */}
       <form onSubmit={addIngredient} className="flex flex-wrap gap-2 items-end rounded-xl border border-stone-100 bg-white p-5">
-        <div className="flex-1 min-w-[180px] space-y-1">
+        <div className="flex-1 min-w-[180px] space-y-1 relative" ref={suggestionsRef}>
           <label className="text-xs font-medium text-stone-500">Ingredient</label>
           <input
             type="text"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => handleNameChange(e.target.value)}
             onBlur={handleNameBlur}
+            onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
             placeholder="e.g. Chicken breast"
             className="w-full rounded-lg border border-stone-200 bg-transparent px-3 py-2.5 text-sm outline-none focus:border-stone-400 focus:ring-2 focus:ring-stone-200 transition-all"
           />
+          {showSuggestions && suggestions.length > 0 && (
+            <div className="absolute z-10 top-full mt-1 w-full rounded-lg border border-stone-200 bg-white shadow-lg max-h-40 overflow-y-auto">
+              {suggestions.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => selectSuggestion(s)}
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-stone-50 transition-colors capitalize"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div className="w-40 space-y-1">
           <label className="text-xs font-medium text-stone-500">Expiry Date</label>

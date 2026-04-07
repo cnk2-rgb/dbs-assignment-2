@@ -38,6 +38,14 @@ export const SHELF_LIFE_DAYS: Record<string, number> = {
   cereal: 180,
 };
 
+export function getMatchingIngredients(input: string): string[] {
+  const lower = input.toLowerCase().trim();
+  if (!lower) return [];
+  return Object.keys(SHELF_LIFE_DAYS).filter((keyword) =>
+    keyword.startsWith(lower)
+  );
+}
+
 export function suggestExpiryDate(ingredientName: string): string | null {
   const lower = ingredientName.toLowerCase().trim();
   if (!lower) return null;
