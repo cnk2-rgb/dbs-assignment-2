@@ -324,38 +324,46 @@ export default function ShoppingPage() {
                         <h3 className="text-base font-semibold text-stone-900 group-hover:text-amber-800 transition-colors">
                           {list.name}
                         </h3>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); deleteList(list.id); }}
+                          className="text-sm text-red-500 opacity-0 transition-opacity hover:text-red-700 group-hover:opacity-100"
+                        >
+                          Delete
+                        </button>
                         {totalCount > 0 && checkedCount === totalCount && (
                           <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-emerald-50 text-emerald-700">
                             Done
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-stone-400">{dateLabel}</p>
+                      <p className="text-sm text-stone-400">{dateLabel}</p>
                     </div>
-                    <div className="flex gap-2 shrink-0 ml-4 items-center">
-                      <span className="text-xs text-stone-300">
-                        {isExpanded ? "▲" : "▼"}
-                      </span>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); deleteList(list.id); }}
-                        className="text-xs text-stone-400 opacity-0 transition-opacity hover:text-red-500 group-hover:opacity-100"
-                      >
-                        Delete
-                      </button>
-                    </div>
+                    <span className={`shrink-0 ml-4 text-sm text-stone-400 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}>
+                      ▼
+                    </span>
                   </div>
 
                   {!isExpanded && totalCount > 0 && (
-                    <div className="mt-3 flex items-center gap-3">
-                      <div className="flex-1 h-1.5 rounded-full bg-amber-100">
-                        <div
-                          className="h-1.5 rounded-full bg-emerald-500 transition-all duration-300"
-                          style={{ width: `${(checkedCount / totalCount) * 100}%` }}
-                        />
+                    <div className="mt-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 h-1.5 rounded-full bg-amber-100">
+                          <div
+                            className="h-1.5 rounded-full bg-emerald-500 transition-all duration-300"
+                            style={{ width: `${(checkedCount / totalCount) * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-sm text-stone-400 shrink-0">
+                          {checkedCount}/{totalCount} items bought
+                        </span>
                       </div>
-                      <span className="text-[11px] text-stone-400 shrink-0">
-                        {checkedCount}/{totalCount} items bought
-                      </span>
+                      <p className="text-sm text-stone-400 mt-1.5 truncate">
+                        {(() => {
+                          const names = list.items.map((i) => i.name);
+                          const shown = names.slice(0, 3);
+                          const remaining = names.length - shown.length;
+                          return shown.join(", ") + (remaining > 0 ? `, +${remaining} more` : "");
+                        })()}
+                      </p>
                     </div>
                   )}
                 </div>
