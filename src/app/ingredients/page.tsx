@@ -243,11 +243,12 @@ export default function IngredientsPage() {
   }
 
   function handleSearchRecipes() {
-    const selectedNames = ingredients
-      .filter((i) => selectedIds.has(i.id))
-      .map((i) => i.name);
-    if (selectedNames.length === 0) return;
-    const query = `site:maangchi.com ${selectedNames.join(" ")}`;
+    const selected = ingredients.filter((i) => selectedIds.has(i.id));
+    if (selected.length === 0) return;
+    const names = selected.map((i) => i.name);
+    const hasKorean = selected.some((i) => i.cuisine === "korean");
+    const site = hasKorean ? "site:maangchi.com" : "site:smittenkitchen.com";
+    const query = `${site} ${names.join(" ")}`;
     window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, "_blank", "noopener,noreferrer");
   }
 
