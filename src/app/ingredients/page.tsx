@@ -183,7 +183,7 @@ export default function IngredientsPage() {
         name: trimmed,
         expiry: expiry || "",
         category,
-        cuisine: category === "pantry" ? cuisine : undefined,
+        cuisine,
         addedDate: new Date().toISOString().split("T")[0],
       },
     ]);
@@ -271,7 +271,7 @@ export default function IngredientsPage() {
     if (!trimmed) return;
     setIngredients((prev) =>
       prev.map((i) =>
-        i.id === id ? { ...i, name: trimmed, expiry: editExpiry, category: editCategory, cuisine: editCategory === "pantry" ? editCuisine : undefined } : i
+        i.id === id ? { ...i, name: trimmed, expiry: editExpiry, category: editCategory, cuisine: editCuisine } : i
       )
     );
     setEditingId(null);
@@ -326,7 +326,7 @@ export default function IngredientsPage() {
       {/* Add form */}
       <form onSubmit={addIngredient} className="flex flex-wrap gap-2 items-end rounded-xl border-2 border-amber-900/30 bg-[#c4a882] p-5 shadow-md">
         <div className="flex-1 min-w-[180px] space-y-1 relative" ref={suggestionsRef}>
-          <label className="text-xs font-medium text-amber-950/70">Ingredient</label>
+          <label className="text-sm font-medium text-amber-950/70 font-pixel">Ingredient</label>
           <input
             type="text"
             value={name}
@@ -353,7 +353,7 @@ export default function IngredientsPage() {
           )}
         </div>
         <div className="w-40 space-y-1">
-          <label className="text-xs font-medium text-amber-950/70">Expiry Date</label>
+          <label className="text-sm font-medium text-amber-950/70 font-pixel">Expiry Date</label>
           <input
             type="date"
             value={expiry}
@@ -362,7 +362,7 @@ export default function IngredientsPage() {
           />
         </div>
         <div className="w-36 space-y-1">
-          <label className="text-xs font-medium text-amber-950/70">Category</label>
+          <label className="text-sm font-medium text-amber-950/70 font-pixel">Category</label>
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value as Ingredient["category"])}
@@ -375,9 +375,8 @@ export default function IngredientsPage() {
             ))}
           </select>
         </div>
-        {category === "pantry" && (
-          <div className="w-32 space-y-1">
-            <label className="text-xs font-medium text-amber-950/70">Cuisine</label>
+        <div className="w-32 space-y-1">
+            <label className="text-sm font-medium text-amber-950/70 font-pixel">Cuisine</label>
             <select
               value={cuisine}
               onChange={(e) => setCuisine(e.target.value as Cuisine)}
@@ -390,7 +389,6 @@ export default function IngredientsPage() {
               ))}
             </select>
           </div>
-        )}
         <button
           type="submit"
           className="rounded-lg bg-amber-900 px-5 py-2.5 text-sm font-medium text-amber-50 transition-colors hover:bg-amber-800 shadow-sm"
@@ -455,8 +453,8 @@ export default function IngredientsPage() {
                         Expiring soon
                       </div>
                     )}
-                    {/* Full edit form for pantry items */}
-                    {editingId === item.id && item.category === "pantry" ? (
+                    {/* Full edit form */}
+                    {editingId === item.id ? (
                       <form
                         onClick={(e) => e.stopPropagation()}
                         onSubmit={(e) => {
@@ -498,8 +496,7 @@ export default function IngredientsPage() {
                             ))}
                           </select>
                         </div>
-                        {editCategory === "pantry" && (
-                          <div className="space-y-1">
+                        <div className="space-y-1">
                             <label className="text-[10px] font-medium opacity-60">Cuisine</label>
                             <select
                               value={editCuisine}
@@ -513,7 +510,6 @@ export default function IngredientsPage() {
                               ))}
                             </select>
                           </div>
-                        )}
                         <div className="flex gap-2 pt-1">
                           <button type="submit" className="text-xs font-medium opacity-70 hover:opacity-100">
                             Save
@@ -538,50 +534,26 @@ export default function IngredientsPage() {
                             </span>
                           )}
                         </div>
-                        {editingId === item.id ? (
-                          <form
-                            onClick={(e) => e.stopPropagation()}
-                            onSubmit={(e) => {
-                              e.preventDefault();
-                              saveExpiry(item.id);
-                            }}
-                            className="flex items-center gap-1 mt-1"
-                          >
-                            <input
-                              type="date"
-                              value={editExpiry}
-                              onChange={(e) => setEditExpiry(e.target.value)}
-                              autoFocus
-                              className="w-32 rounded border border-current/20 bg-transparent px-1.5 py-0.5 text-xs outline-none"
-                            />
-                            <button type="submit" className="text-xs font-medium opacity-70 hover:opacity-100">
-                              Save
-                            </button>
-                          </form>
-                        ) : (
-                          <div
-                            onClick={(e) => { e.stopPropagation(); item.category === "pantry" ? startEditPantryItem(item) : startEditExpiry(item); }}
-                            className={`text-xs mt-0.5 cursor-pointer hover:opacity-100 ${
-                              getExpiryStatus(item.expiry) === "expired"
-                                ? "text-red-600 font-medium"
-                                : getExpiryStatus(item.expiry) === "soon"
-                                ? "text-orange-600 font-medium"
-                                : "opacity-70"
-                            }`}
-                          >
-                            {formatExpiry(item.expiry)}
-                          </div>
-                        )}
+                        <div
+                          onClick={(e) => { e.stopPropagation(); startEditPantryItem(item); }}
+                          className={`text-xs mt-0.5 cursor-pointer hover:opacity-100 ${
+                            getExpiryStatus(item.expiry) === "expired"
+                              ? "text-red-600 font-medium"
+                              : getExpiryStatus(item.expiry) === "soon"
+                              ? "text-orange-600 font-medium"
+                              : "opacity-70"
+                          }`}
+                        >
+                          {formatExpiry(item.expiry)}
+                        </div>
                       </div>
                       <div className="absolute top-2 right-2 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {item.category === "pantry" && (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); startEditPantryItem(item); }}
-                            className="text-[11px] font-medium text-amber-700 hover:text-amber-900 transition-colors"
-                          >
-                            Edit
-                          </button>
-                        )}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); startEditPantryItem(item); }}
+                          className="text-[11px] font-medium text-amber-700 hover:text-amber-900 transition-colors"
+                        >
+                          Edit
+                        </button>
                         <button
                           onClick={(e) => { e.stopPropagation(); deleteIngredient(item.id); }}
                           className="text-[11px] font-medium text-red-500 hover:text-red-700 transition-colors"

@@ -209,21 +209,51 @@ export default function ShoppingPage() {
     setAddingToListId(null);
   };
 
+  // --- Export list as formatted text ---
+  const formatListAsText = (list: ShoppingList): string => {
+    let text = `${list.name}\n${"─".repeat(list.name.length)}\n\n`;
+    for (const store of list.stores) {
+      const storeItems = list.items.filter((i) => i.store === store);
+      if (storeItems.length === 0) continue;
+      text += `${store}:\n`;
+      for (const item of storeItems) {
+        const check = item.checked ? "x" : " ";
+        text += `  [${check}] ${item.name} x${item.quantity}\n`;
+      }
+      text += "\n";
+    }
+    return text.trim();
+  };
+
+  const [copied, setCopied] = useState(false);
+
+  const copyList = (list: ShoppingList) => {
+    navigator.clipboard.writeText(formatListAsText(list));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const emailList = (list: ShoppingList) => {
+    const body = encodeURIComponent(formatListAsText(list));
+    const subject = encodeURIComponent(list.name);
+    window.open(`mailto:?subject=${subject}&body=${body}`);
+  };
+
   const discardDeferred = (deferredId: string) => {
     setDeferredItems((prev) => prev.filter((i) => i.id !== deferredId));
   };
 
   return (
-    <div className="space-y-6 -mx-6 -my-8 min-h-screen bg-[#e8ddd0]" style={{ marginLeft: 'calc(-50vw + 50%)', marginRight: 'calc(-50vw + 50%)', paddingLeft: 'max(1.5rem, calc(50vw - 28rem))', paddingRight: 'max(1.5rem, calc(50vw - 28rem))', paddingTop: '2rem', paddingBottom: '2rem' }}>
+    <div className="space-y-6 -mx-6 -my-8 min-h-screen bg-[#c5ccd9]" style={{ marginLeft: 'calc(-50vw + 50%)', marginRight: 'calc(-50vw + 50%)', paddingLeft: 'max(1.5rem, calc(50vw - 28rem))', paddingRight: 'max(1.5rem, calc(50vw - 28rem))', paddingTop: '2rem', paddingBottom: '2rem' }}>
       <div>
-        <h1 className="font-pixel text-4xl font-bold tracking-tight text-amber-950">Shopping Lists</h1>
-        <p className="text-sm text-amber-900/60 mt-1">
+        <h1 className="font-pixel text-4xl font-bold tracking-tight text-slate-900">Shopping Lists</h1>
+        <p className="text-sm text-slate-500 mt-1">
           Plan your trips and defer what you don&apos;t get to.
         </p>
       </div>
 
       {/* New list form */}
-      <form onSubmit={createList} className="space-y-3 rounded-xl border border-amber-200/50 bg-white/80 p-5">
+      <form onSubmit={createList} className="space-y-3 rounded-xl border border-slate-300/50 bg-white/80 p-5">
         <input
           type="text"
           value={newListName}
@@ -233,7 +263,7 @@ export default function ShoppingPage() {
         />
         <button
           type="submit"
-          className="rounded-lg bg-amber-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-amber-800"
+          className="rounded-lg bg-indigo-700 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-600"
         >
           Create List
         </button>
@@ -281,7 +311,7 @@ export default function ShoppingPage() {
                         <button
                           key={list.id}
                           onClick={() => addDeferredToList(item.id, list.id)}
-                          className="w-full text-left rounded-lg border border-amber-200/50 bg-white/80 px-3 py-2 text-xs font-medium text-amber-900 hover:bg-amber-50 transition-colors"
+                          className="w-full text-left rounded-lg border border-slate-300/50 bg-white/80 px-3 py-2 text-xs font-medium text-indigo-900 hover:bg-slate-50 transition-colors"
                         >
                           {list.name}
                         </button>
@@ -329,7 +359,7 @@ export default function ShoppingPage() {
             return (
               <div
                 key={list.id}
-                className={`rounded-xl border border-amber-200/50 bg-white/80 transition-shadow ${
+                className={`rounded-xl border border-slate-300/50 bg-white/80 transition-shadow ${
                   isExpanded ? "shadow-md" : "hover:shadow-md"
                 }`}
               >
@@ -341,7 +371,7 @@ export default function ShoppingPage() {
                   <div className="flex items-start justify-between">
                     <div className="space-y-1 flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-base font-semibold text-stone-900 group-hover:text-amber-800 transition-colors">
+                        <h3 className="text-base font-semibold text-stone-900 group-hover:text-indigo-700 transition-colors">
                           {list.name}
                         </h3>
                         <button
@@ -366,9 +396,9 @@ export default function ShoppingPage() {
                   {!isExpanded && totalCount > 0 && (
                     <div className="mt-3">
                       <div className="flex items-center gap-3">
-                        <div className="flex-1 h-1.5 rounded-full bg-amber-100">
+                        <div className="flex-1 h-2.5 rounded-full bg-slate-200">
                           <div
-                            className="h-1.5 rounded-full bg-emerald-500 transition-all duration-300"
+                            className="h-2.5 rounded-full bg-emerald-500 transition-all duration-300"
                             style={{ width: `${(checkedCount / totalCount) * 100}%` }}
                           />
                         </div>
@@ -390,7 +420,7 @@ export default function ShoppingPage() {
 
                 {/* Expanded content */}
                 {isExpanded && (
-                  <div className="border-t border-amber-200/30 px-5 pb-5 pt-4 space-y-5">
+                  <div className="border-t border-slate-300/30 px-5 pb-5 pt-4 space-y-5">
                     {/* Progress bar */}
                     {totalCount > 0 && (
                       <div>
@@ -398,9 +428,9 @@ export default function ShoppingPage() {
                           <span>{checkedCount} of {totalCount} items</span>
                           <span>{Math.round((checkedCount / totalCount) * 100)}%</span>
                         </div>
-                        <div className="h-2 rounded-full bg-amber-100">
+                        <div className="h-3 rounded-full bg-slate-200">
                           <div
-                            className="h-2 rounded-full bg-emerald-500 transition-all duration-300"
+                            className="h-3 rounded-full bg-emerald-500 transition-all duration-300"
                             style={{ width: `${(checkedCount / totalCount) * 100}%` }}
                           />
                         </div>
@@ -409,7 +439,7 @@ export default function ShoppingPage() {
 
                     {/* Fridge warning */}
                     {fridgeWarning && (
-                      <div className="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
+                      <div className="flex items-center gap-2 rounded-lg border border-slate-400 bg-slate-100 px-4 py-2.5 text-sm text-slate-700">
                         <span>&#9888;</span>
                         <span>{fridgeWarning}</span>
                       </div>
@@ -446,7 +476,7 @@ export default function ShoppingPage() {
                         </select>
                         <button
                           onClick={addItem}
-                          className="rounded-lg bg-amber-900 px-4 py-2 text-sm font-medium text-white hover:bg-amber-800 transition-colors"
+                          className="rounded-lg bg-indigo-700 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-600 transition-colors"
                         >
                           Add
                         </button>
@@ -460,12 +490,12 @@ export default function ShoppingPage() {
                         {list.stores.map((store) => (
                           <span
                             key={store}
-                            className="group/tag inline-flex items-center gap-1.5 rounded-full bg-amber-100/80 px-3 py-1 text-xs text-amber-900 border border-amber-200/60"
+                            className="group/tag inline-flex items-center gap-1.5 rounded-full bg-slate-200/80 px-3 py-1 text-xs text-indigo-900 border border-slate-300/60"
                           >
                             {store}
                             <button
                               onClick={() => removeStore(store)}
-                              className="opacity-0 group-hover/tag:opacity-100 transition-opacity text-amber-600 hover:text-red-500 font-bold"
+                              className="opacity-0 group-hover/tag:opacity-100 transition-opacity text-indigo-500 hover:text-red-500 font-bold"
                             >
                               x
                             </button>
@@ -483,7 +513,7 @@ export default function ShoppingPage() {
                         />
                         <button
                           onClick={addStore}
-                          className="rounded-lg border border-amber-900/20 bg-amber-900/10 px-3 py-2 text-xs font-medium text-amber-900 hover:bg-amber-900/20 transition-colors"
+                          className="rounded-lg border border-indigo-700/20 bg-indigo-700/10 px-3 py-2 text-xs font-medium text-indigo-900 hover:bg-indigo-700/20 transition-colors"
                         >
                           Add Store
                         </button>
@@ -498,7 +528,7 @@ export default function ShoppingPage() {
                       return (
                         <div key={store}>
                           <h4 className="text-xs font-medium text-stone-500 mb-2 flex items-center gap-2">
-                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-600" />
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-500" />
                             {store}
                             <span className="text-stone-300 font-normal">
                               {storeItems.filter((i) => i.checked).length}/{storeItems.length}
@@ -511,14 +541,14 @@ export default function ShoppingPage() {
                                 className={`group/item flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${
                                   item.checked
                                     ? "bg-emerald-50/60"
-                                    : "hover:bg-amber-50/60"
+                                    : "hover:bg-slate-50/60"
                                 }`}
                               >
                                 <input
                                   type="checkbox"
                                   checked={item.checked}
                                   onChange={() => toggleItem(item.id)}
-                                  className="h-4 w-4 rounded border-amber-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                                  className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
                                 />
 
                                 {editingItemId === item.id ? (
@@ -528,7 +558,7 @@ export default function ShoppingPage() {
                                       value={editName}
                                       onChange={(e) => setEditName(e.target.value)}
                                       onKeyDown={(e) => e.key === "Enter" && saveEdit(item.id)}
-                                      className="flex-1 rounded border border-amber-200 px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-amber-300"
+                                      className="flex-1 rounded border border-slate-300 px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-slate-300"
                                       autoFocus
                                     />
                                     <input
@@ -536,14 +566,14 @@ export default function ShoppingPage() {
                                       value={editQty}
                                       onChange={(e) => setEditQty(e.target.value)}
                                       onKeyDown={(e) => e.key === "Enter" && saveEdit(item.id)}
-                                      className="w-16 rounded border border-amber-200 px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-amber-300"
+                                      className="w-16 rounded border border-slate-300 px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-slate-300"
                                     />
                                     <button onClick={() => saveEdit(item.id)} className="text-xs text-emerald-600 hover:text-emerald-700 font-medium">Save</button>
                                     <button onClick={() => setEditingItemId(null)} className="text-xs text-stone-400 hover:text-stone-600">Cancel</button>
                                   </div>
                                 ) : (
                                   <>
-                                    <span className={`flex-1 text-sm ${item.checked ? "line-through text-stone-400" : "text-amber-950"}`}>
+                                    <span className={`flex-1 text-sm ${item.checked ? "line-through text-stone-400" : "text-slate-900"}`}>
                                       {item.name}
                                     </span>
                                     <span className="text-xs text-stone-400 mr-1">x{item.quantity}</span>
@@ -557,7 +587,7 @@ export default function ShoppingPage() {
                                     )}
                                     <button
                                       onClick={() => startEdit(item)}
-                                      className="opacity-0 group-hover/item:opacity-100 transition-opacity text-xs text-amber-600 hover:text-amber-800"
+                                      className="opacity-0 group-hover/item:opacity-100 transition-opacity text-xs text-indigo-500 hover:text-indigo-700"
                                     >
                                       Edit
                                     </button>
@@ -594,6 +624,24 @@ export default function ShoppingPage() {
                         </button>
                       ) : null;
                     })()}
+
+                    {/* Export buttons */}
+                    {totalCount > 0 && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => copyList(list)}
+                          className="flex-1 rounded-lg border border-slate-300/50 bg-white/60 px-4 py-2.5 text-sm font-medium text-indigo-900 hover:bg-white/80 transition-colors"
+                        >
+                          {copied ? "Copied!" : "Copy to clipboard"}
+                        </button>
+                        <button
+                          onClick={() => emailList(list)}
+                          className="flex-1 rounded-lg border border-slate-300/50 bg-white/60 px-4 py-2.5 text-sm font-medium text-indigo-900 hover:bg-white/80 transition-colors"
+                        >
+                          Email list
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
