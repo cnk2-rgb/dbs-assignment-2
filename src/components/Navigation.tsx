@@ -7,6 +7,7 @@ const links = [
   { href: "/", label: "Home" },
   { href: "/journal", label: "Journal" },
   { href: "/ingredients", label: "Ingredients" },
+  { href: "/shopping", label: "Shopping" },
 ];
 
 export default function Navigation() {

@@ -25,3 +25,20 @@ export interface Ingredient {
   cuisine?: Cuisine;
   addedDate: string;   // YYYY-MM-DD
 }
+
+export interface ShoppingItem {
+  id: string;
+  name: string;
+  quantity: string;
+  checked: boolean;
+  deferred: boolean;
+  store: string;
+}
+
+export interface ShoppingList {
+  id: string;
+  name: string;
+  createdAt: number;
+  stores: string[];
+  items: ShoppingItem[];
+}
