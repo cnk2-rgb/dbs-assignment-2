@@ -53,16 +53,16 @@ export default function Calendar({ tasks, currentMonth, onPrevMonth, onNextMonth
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={onPrevMonth}
-          className="rounded-lg px-3 py-1.5 text-sm text-stone-500 hover:bg-stone-100 hover:text-stone-900 transition-colors"
+          className="rounded-lg px-3 py-1.5 text-sm text-amber-800/60 hover:bg-amber-100/50 hover:text-amber-900 transition-colors"
         >
           &larr;
         </button>
-        <h3 className="text-sm font-semibold text-stone-900">
+        <h3 className="text-sm font-semibold text-amber-950">
           {monthLabel}
         </h3>
         <button
           onClick={onNextMonth}
-          className="rounded-lg px-3 py-1.5 text-sm text-stone-500 hover:bg-stone-100 hover:text-stone-900 transition-colors"
+          className="rounded-lg px-3 py-1.5 text-sm text-amber-800/60 hover:bg-amber-100/50 hover:text-amber-900 transition-colors"
         >
           &rarr;
         </button>
@@ -70,7 +70,7 @@ export default function Calendar({ tasks, currentMonth, onPrevMonth, onNextMonth
 
       <div className="grid grid-cols-7 gap-px mb-1">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-          <div key={d} className="text-center text-xs font-medium text-stone-400 py-1">
+          <div key={d} className="text-center text-xs font-medium text-amber-800/40 py-1">
             {d}
           </div>
         ))}
@@ -86,17 +86,17 @@ export default function Calendar({ tasks, currentMonth, onPrevMonth, onNextMonth
             <Link
               key={day}
               href={`/day/${dateStr(day)}`}
-              className={`h-18 rounded-lg border p-1.5 transition-colors hover:bg-stone-50 ${
+              className={`h-18 rounded-lg border p-1.5 transition-colors hover:bg-amber-50/50 ${
                 isToday(day)
-                  ? "border-stone-900 bg-stone-50 ring-1 ring-stone-900"
-                  : "border-stone-100"
+                  ? "border-amber-800 bg-amber-50/50 ring-1 ring-amber-800"
+                  : "border-amber-200/50"
               }`}
             >
               <div
                 className={`text-xs ${
                   isToday(day)
-                    ? "font-bold text-stone-900"
-                    : "text-stone-500"
+                    ? "font-bold text-amber-950"
+                    : "text-amber-800/60"
                 }`}
               >
                 {day}
@@ -115,7 +115,7 @@ export default function Calendar({ tasks, currentMonth, onPrevMonth, onNextMonth
                   </div>
                 ))}
                 {dayTasks.length > 2 && (
-                  <div className="text-[10px] text-stone-400">
+                  <div className="text-[10px] text-amber-800/40">
                     +{dayTasks.length - 2} more
                   </div>
                 )}

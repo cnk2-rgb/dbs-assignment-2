@@ -172,11 +172,11 @@ export default function TaskList({ tasks, setTasks }: TaskListProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Add a new task..."
-            className="flex-1 rounded-lg border border-stone-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-stone-400 focus:ring-2 focus:ring-stone-200 transition-all"
+            className="flex-1 rounded-lg border border-amber-200/50 bg-white/80 px-4 py-2.5 text-sm outline-none focus:border-stone-400 focus:ring-2 focus:ring-stone-200 transition-all"
           />
           <button
             type="submit"
-            className="rounded-lg bg-stone-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-stone-700"
+            className="rounded-lg bg-amber-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-amber-800"
           >
             Add
           </button>
@@ -189,7 +189,7 @@ export default function TaskList({ tasks, setTasks }: TaskListProps) {
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="rounded-md border border-stone-200 bg-white px-2 py-1.5 text-xs outline-none focus:border-stone-400"
+              className="rounded-md border border-amber-200/50 bg-white/80 px-2 py-1.5 text-xs outline-none focus:border-stone-400"
             />
           </div>
           <div className="flex items-center gap-1.5">
@@ -199,7 +199,7 @@ export default function TaskList({ tasks, setTasks }: TaskListProps) {
               type="time"
               value={dueTime}
               onChange={(e) => setDueTime(e.target.value)}
-              className="rounded-md border border-stone-200 bg-white px-2 py-1.5 text-xs outline-none focus:border-stone-400"
+              className="rounded-md border border-amber-200/50 bg-white/80 px-2 py-1.5 text-xs outline-none focus:border-stone-400"
             />
           </div>
         </div>
@@ -216,13 +216,13 @@ export default function TaskList({ tasks, setTasks }: TaskListProps) {
             {tasks.map((task) => (
               <li
                 key={task.id}
-                className="group flex items-start gap-3 rounded-lg border border-stone-100 bg-white px-4 py-3 transition-shadow hover:shadow-sm"
+                className="group flex items-start gap-3 rounded-lg border border-amber-200/50 bg-white/80 px-4 py-3 transition-shadow hover:shadow-sm"
               >
                 <input
                   type="checkbox"
                   checked={task.completed}
                   onChange={() => toggleTask(task.id)}
-                  className="mt-0.5 h-4 w-4 shrink-0 accent-stone-900"
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-amber-900"
                 />
 
                 {editingId === task.id ? (
@@ -286,7 +286,7 @@ export default function TaskList({ tasks, setTasks }: TaskListProps) {
                 <span className="text-emerald-600 font-medium">All done!</span>
               )}
             </div>
-            <div className="h-1.5 rounded-full bg-stone-100 overflow-hidden">
+            <div className="h-1.5 rounded-full bg-amber-100 overflow-hidden">
               <div
                 className="h-full rounded-full bg-emerald-500 transition-all duration-500"
                 style={{ width: `${(completedCount / tasks.length) * 100}%` }}
@@ -297,7 +297,7 @@ export default function TaskList({ tasks, setTasks }: TaskListProps) {
       )}
 
       {/* Calendar */}
-      <div className="rounded-xl border border-stone-100 bg-white p-5">
+      <div className="rounded-xl border border-amber-200/50 bg-white/80 p-5">
         <Calendar
           tasks={tasks}
           currentMonth={calendarMonth}

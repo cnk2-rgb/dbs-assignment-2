@@ -163,8 +163,8 @@ export default function JournalPage() {
           <form onSubmit={handleSetPassword} className="w-full max-w-sm space-y-4">
             <div className="text-center space-y-2">
               <div className="text-4xl">🔒</div>
-              <h1 className="text-xl font-bold tracking-tight">Journal</h1>
-              <p className="text-sm text-stone-500">Set a password to protect your journal</p>
+              <h1 className="font-pixel text-2xl font-bold tracking-tight text-amber-950">Journal</h1>
+              <p className="text-sm text-amber-900/60">Set a password to protect your journal</p>
             </div>
             <input
               type="password"
@@ -175,7 +175,7 @@ export default function JournalPage() {
               className={`w-full rounded-lg border px-4 py-3 text-sm outline-none transition-all ${
                 passwordError
                   ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-2 focus:ring-red-100"
-                  : "border-stone-200 bg-white focus:border-stone-400 focus:ring-2 focus:ring-stone-200"
+                  : "border-amber-200/50 bg-white/80 focus:border-stone-400 focus:ring-2 focus:ring-stone-200"
               }`}
             />
             <input
@@ -186,7 +186,7 @@ export default function JournalPage() {
               className={`w-full rounded-lg border px-4 py-3 text-sm outline-none transition-all ${
                 passwordError
                   ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-2 focus:ring-red-100"
-                  : "border-stone-200 bg-white focus:border-stone-400 focus:ring-2 focus:ring-stone-200"
+                  : "border-amber-200/50 bg-white/80 focus:border-stone-400 focus:ring-2 focus:ring-stone-200"
               }`}
             />
             {passwordError && (
@@ -194,7 +194,7 @@ export default function JournalPage() {
             )}
             <button
               type="submit"
-              className="w-full rounded-lg bg-stone-900 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-stone-700"
+              className="w-full rounded-lg bg-amber-900 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-amber-800"
             >
               Set Password
             </button>
@@ -210,8 +210,8 @@ export default function JournalPage() {
         <form onSubmit={handleUnlock} className="w-full max-w-sm space-y-4">
           <div className="text-center space-y-2">
             <div className="text-4xl">🔒</div>
-            <h1 className="text-xl font-bold tracking-tight">Journal</h1>
-            <p className="text-sm text-stone-500">Enter your password to continue</p>
+            <h1 className="font-pixel text-2xl font-bold tracking-tight text-amber-950">Journal</h1>
+            <p className="text-sm text-amber-900/60">Enter your password to continue</p>
           </div>
           <input
             type="password"
@@ -222,7 +222,7 @@ export default function JournalPage() {
             className={`w-full rounded-lg border px-4 py-3 text-sm outline-none transition-all ${
               passwordError
                 ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-2 focus:ring-red-100"
-                : "border-stone-200 bg-white focus:border-stone-400 focus:ring-2 focus:ring-stone-200"
+                : "border-amber-200/50 bg-white/80 focus:border-stone-400 focus:ring-2 focus:ring-stone-200"
             }`}
           />
           {passwordError && (
@@ -230,7 +230,7 @@ export default function JournalPage() {
           )}
           <button
             type="submit"
-            className="w-full rounded-lg bg-stone-900 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-stone-700"
+            className="w-full rounded-lg bg-amber-900 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-amber-800"
           >
             Unlock
           </button>
@@ -240,11 +240,11 @@ export default function JournalPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 -mx-6 -my-8 min-h-screen bg-[#f0e8d8]" style={{ marginLeft: 'calc(-50vw + 50%)', marginRight: 'calc(-50vw + 50%)', paddingLeft: 'max(1.5rem, calc(50vw - 28rem))', paddingRight: 'max(1.5rem, calc(50vw - 28rem))', paddingTop: '2rem', paddingBottom: '2rem' }}>
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Journal</h1>
-          <p className="text-sm text-stone-500 mt-1">
+          <h1 className="font-pixel text-4xl font-bold tracking-tight text-amber-950">Journal</h1>
+          <p className="text-sm text-amber-900/60 mt-1">
             Entries auto-delete after {AUTO_DELETE_DAYS} days
           </p>
         </div>
@@ -265,7 +265,7 @@ export default function JournalPage() {
       </div>
 
       {showChangePassword && (
-        <form onSubmit={handleChangePassword} className="rounded-xl border border-stone-100 bg-white p-5 space-y-3">
+        <form onSubmit={handleChangePassword} className="rounded-xl border border-amber-200/50 bg-white/80 p-5 space-y-3">
           <h3 className="text-sm font-semibold text-stone-900">Change Password</h3>
           <input
             type="password"
@@ -295,7 +295,7 @@ export default function JournalPage() {
             <p className="text-xs text-emerald-600">Password changed successfully!</p>
           )}
           <div className="flex gap-2">
-            <button type="submit" className="rounded-lg bg-stone-900 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-stone-700">
+            <button type="submit" className="rounded-lg bg-amber-900 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-amber-800">
               Update Password
             </button>
             <button type="button" onClick={() => setShowChangePassword(false)} className="rounded-lg border border-stone-200 px-4 py-2 text-xs text-stone-600 transition-colors hover:bg-stone-50">
@@ -306,7 +306,7 @@ export default function JournalPage() {
       )}
 
       {/* New entry form */}
-      <form onSubmit={addEntry} className="space-y-3 rounded-xl border border-stone-100 bg-white p-5">
+      <form onSubmit={addEntry} className="space-y-3 rounded-xl border border-amber-200/50 bg-white/80 p-5">
         <div className="flex items-center gap-3">
           <label className="text-xs font-medium text-stone-500">Date</label>
           <input
@@ -325,7 +325,7 @@ export default function JournalPage() {
         />
         <button
           type="submit"
-          className="rounded-lg bg-stone-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-stone-700"
+          className="rounded-lg bg-amber-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-amber-800"
         >
           Save Entry
         </button>
@@ -354,7 +354,7 @@ export default function JournalPage() {
             return (
               <div
                 key={entry.id}
-                className="group rounded-xl border border-stone-100 bg-white p-5 transition-shadow hover:shadow-sm"
+                className="group rounded-xl border border-amber-200/50 bg-white/80 p-5 transition-shadow hover:shadow-sm"
               >
                 <div className="flex items-start justify-between">
                   <div className="space-y-1 flex-1 min-w-0">

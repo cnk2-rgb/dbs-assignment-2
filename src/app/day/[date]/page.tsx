@@ -61,15 +61,15 @@ export default function DayPage() {
       <div className="flex items-center gap-3">
         <Link
           href="/"
-          className="rounded-lg px-3 py-1.5 text-sm text-stone-500 hover:bg-stone-100 hover:text-stone-900 transition-colors"
+          className="rounded-lg px-3 py-1.5 text-sm text-amber-800/60 hover:bg-amber-100/50 hover:text-amber-900 transition-colors"
         >
           &larr; Back
         </Link>
       </div>
 
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">{dateLabel}</h1>
-        <p className="text-sm text-stone-500 mt-1">
+        <h1 className="font-pixel text-3xl font-bold tracking-tight text-amber-950">{dateLabel}</h1>
+        <p className="text-sm text-amber-900/60 mt-1">
           {tasks.length === 0
             ? "No tasks for this day"
             : `${completedCount} of ${tasks.length} completed`}
@@ -89,19 +89,19 @@ export default function DayPage() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Add a task for this day..."
-          className="flex-1 rounded-lg border border-stone-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-stone-400 focus:ring-2 focus:ring-stone-200 transition-all"
+          className="flex-1 rounded-lg border border-amber-200/50 bg-white/80 px-4 py-2.5 text-sm outline-none focus:border-stone-400 focus:ring-2 focus:ring-stone-200 transition-all"
         />
         <div className="flex items-center gap-1.5">
           <input
             type="time"
             value={dueTime}
             onChange={(e) => setDueTime(e.target.value)}
-            className="rounded-lg border border-stone-200 bg-white px-2 py-2.5 text-xs outline-none focus:border-stone-400"
+            className="rounded-lg border border-amber-200/50 bg-white/80 px-2 py-2.5 text-xs outline-none focus:border-stone-400"
           />
         </div>
         <button
           type="submit"
-          className="rounded-lg bg-stone-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-stone-700"
+          className="rounded-lg bg-amber-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-amber-800"
         >
           Add
         </button>
@@ -113,13 +113,13 @@ export default function DayPage() {
           {tasks.map((task) => (
             <li
               key={task.id}
-              className="group flex items-center gap-3 rounded-lg border border-stone-100 bg-white px-4 py-3 transition-shadow hover:shadow-sm"
+              className="group flex items-center gap-3 rounded-lg border border-amber-200/50 bg-white/80 px-4 py-3 transition-shadow hover:shadow-sm"
             >
               <input
                 type="checkbox"
                 checked={task.completed}
                 onChange={() => toggleTask(task.id)}
-                className="h-4 w-4 shrink-0 accent-stone-900"
+                className="h-4 w-4 shrink-0 accent-amber-900"
               />
               <div className="flex-1 min-w-0">
                 <span
@@ -155,7 +155,7 @@ export default function DayPage() {
       {/* Progress bar */}
       {tasks.length > 0 && (
         <div className="space-y-2">
-          <div className="h-1.5 rounded-full bg-stone-100 overflow-hidden">
+          <div className="h-1.5 rounded-full bg-amber-100 overflow-hidden">
             <div
               className="h-full rounded-full bg-emerald-500 transition-all duration-500"
               style={{ width: `${(completedCount / tasks.length) * 100}%` }}

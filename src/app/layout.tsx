@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Silkscreen } from "next/font/google";
 import Navigation from "@/components/Navigation";
 import "./globals.css";
 
@@ -10,6 +10,12 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+const silkscreen = Silkscreen({
+  weight: ["400", "700"],
+  variable: "--font-pixel",
   subsets: ["latin"],
 });
 
@@ -24,8 +30,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-stone-50 text-stone-900 font-sans">
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${silkscreen.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col bg-[#f5f0e8] text-stone-900 font-sans">
         <Navigation />
         <main className="flex-1 mx-auto w-full max-w-4xl px-6 py-8">
           {children}

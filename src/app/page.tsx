@@ -17,8 +17,8 @@ export default function Home() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Daily Planner</h1>
-        <p className="text-sm text-stone-500 mt-1">{today}</p>
+        <h1 className="font-pixel text-4xl font-bold tracking-tight text-amber-950">Daily Planner</h1>
+        <p className="text-sm text-amber-900/60 mt-1">{today}</p>
       </div>
       <TaskList tasks={tasks} setTasks={setTasks} />
     </div>

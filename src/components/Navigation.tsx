@@ -13,9 +13,9 @@ export default function Navigation() {
   const pathname = usePathname();
 
   return (
-    <nav className="border-b border-stone-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+    <nav className="border-b border-[#4a2e20] bg-[#5c3d2e]/95 backdrop-blur-sm sticky top-0 z-50">
       <div className="mx-auto max-w-4xl px-6 flex items-center justify-between h-14">
-        <Link href="/" className="text-lg font-semibold tracking-tight text-stone-900">
+        <Link href="/" className="font-pixel text-lg font-bold tracking-tight text-amber-100">
           Productivity
         </Link>
         <div className="flex gap-1">
@@ -30,8 +30,8 @@ export default function Navigation() {
                 href={link.href}
                 className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                   active
-                    ? "bg-stone-900 text-white"
-                    : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"
+                    ? "bg-[#8b6b4a] text-amber-50"
+                    : "text-amber-200/70 hover:bg-[#6b4a35] hover:text-amber-100"
                 }`}
               >
                 {link.label}
