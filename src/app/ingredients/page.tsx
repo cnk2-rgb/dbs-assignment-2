@@ -1,8 +1,18 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Ingredient } from "@/types";
-import { suggestExpiryDate, getMatchingIngredients } from "@/constants/ingredients";
+import { Ingredient, Cuisine } from "@/types";
+import { suggestExpiryDate, getMatchingIngredients, suggestCuisine, INGREDIENT_CUISINE } from "@/constants/ingredients";
+
+const CUISINES: Cuisine[] = ["general", "korean", "japanese", "chinese", "other"];
+
+const CUISINE_LABELS: Record<Cuisine, string> = {
+  general: "General",
+  korean: "Korean",
+  japanese: "Japanese",
+  chinese: "Chinese",
+  other: "Other",
+};
 
 const CATEGORIES: Ingredient["category"][] = [
   "produce",
@@ -36,11 +46,13 @@ export default function IngredientsPage() {
   const [name, setName] = useState("");
   const [expiry, setExpiry] = useState("");
   const [category, setCategory] = useState<Ingredient["category"]>("produce");
+  const [cuisine, setCuisine] = useState<Cuisine>("general");
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editExpiry, setEditExpiry] = useState("");
   const [editName, setEditName] = useState("");
   const [editCategory, setEditCategory] = useState<Ingredient["category"]>("pantry");
+  const [editCuisine, setEditCuisine] = useState<Cuisine>("general");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -67,11 +79,13 @@ export default function IngredientsPage() {
         name: trimmed,
         expiry: expiry || "",
         category,
+        cuisine: category === "pantry" ? cuisine : undefined,
         addedDate: new Date().toISOString().split("T")[0],
       },
     ]);
     setName("");
     setExpiry("");
+    setCuisine("general");
   }
 
   function handleNameChange(value: string) {
@@ -88,6 +102,11 @@ export default function IngredientsPage() {
     if (!expiry) {
       const suggested = suggestExpiryDate(keyword);
       if (suggested) setExpiry(suggested);
+    }
+    const suggestedCuisine = suggestCuisine(keyword);
+    if (suggestedCuisine) {
+      setCuisine(suggestedCuisine);
+      if (keyword in INGREDIENT_CUISINE) setCategory("pantry");
     }
   }
 
@@ -124,7 +143,7 @@ export default function IngredientsPage() {
       .filter((i) => selectedIds.has(i.id))
       .map((i) => i.name);
     if (selectedNames.length === 0) return;
-    const query = `site:smittenkitchen.com ${selectedNames.join(" ")}`;
+    const query = `site:maangchi.com ${selectedNames.join(" ")}`;
     window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, "_blank", "noopener,noreferrer");
   }
 
@@ -140,6 +159,7 @@ export default function IngredientsPage() {
     setEditName(ingredient.name);
     setEditExpiry(ingredient.expiry);
     setEditCategory(ingredient.category);
+    setEditCuisine(ingredient.cuisine || "general");
   }
 
   function savePantryItem(id: string) {
@@ -147,7 +167,7 @@ export default function IngredientsPage() {
     if (!trimmed) return;
     setIngredients((prev) =>
       prev.map((i) =>
-        i.id === id ? { ...i, name: trimmed, expiry: editExpiry, category: editCategory } : i
+        i.id === id ? { ...i, name: trimmed, expiry: editExpiry, category: editCategory, cuisine: editCategory === "pantry" ? editCuisine : undefined } : i
       )
     );
     setEditingId(null);
@@ -245,6 +265,22 @@ export default function IngredientsPage() {
             ))}
           </select>
         </div>
+        {category === "pantry" && (
+          <div className="w-32 space-y-1">
+            <label className="text-xs font-medium text-stone-500">Cuisine</label>
+            <select
+              value={cuisine}
+              onChange={(e) => setCuisine(e.target.value as Cuisine)}
+              className="w-full rounded-lg border border-stone-200 bg-transparent px-3 py-2.5 text-sm outline-none focus:border-stone-400"
+            >
+              {CUISINES.map((c) => (
+                <option key={c} value={c}>
+                  {CUISINE_LABELS[c]}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <button
           type="submit"
           className="rounded-lg bg-stone-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-stone-700"
@@ -352,6 +388,22 @@ export default function IngredientsPage() {
                             ))}
                           </select>
                         </div>
+                        {editCategory === "pantry" && (
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-medium opacity-60">Cuisine</label>
+                            <select
+                              value={editCuisine}
+                              onChange={(e) => setEditCuisine(e.target.value as Cuisine)}
+                              className="w-full rounded border border-current/20 bg-transparent px-2 py-1 text-xs outline-none"
+                            >
+                              {CUISINES.map((c) => (
+                                <option key={c} value={c}>
+                                  {CUISINE_LABELS[c]}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
                         <div className="flex gap-2 pt-1">
                           <button type="submit" className="text-xs font-medium opacity-70 hover:opacity-100">
                             Save
@@ -368,7 +420,14 @@ export default function IngredientsPage() {
                     ) : (
                     <div className="flex items-start justify-between">
                       <div className="min-w-0">
-                        <div className="font-medium text-sm truncate">{item.name}</div>
+                        <div className="font-medium text-sm truncate">
+                          {item.name}
+                          {item.cuisine && item.cuisine !== "general" && (
+                            <span className="ml-1.5 inline-block rounded-full bg-current/10 px-1.5 py-0.5 text-[10px] font-medium opacity-60">
+                              {CUISINE_LABELS[item.cuisine]}
+                            </span>
+                          )}
+                        </div>
                         {editingId === item.id ? (
                           <form
                             onClick={(e) => e.stopPropagation()}

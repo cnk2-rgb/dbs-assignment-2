@@ -14,10 +14,13 @@ export interface JournalEntry {
   persist?: boolean;   // if true, skip auto-delete
 }
 
+export type Cuisine = 'korean' | 'general' | 'japanese' | 'chinese' | 'other';
+
 export interface Ingredient {
   id: string;
   name: string;
   expiry: string;      // YYYY-MM-DD
   category: 'produce' | 'dairy' | 'meat' | 'pantry' | 'frozen' | 'other';
+  cuisine?: Cuisine;
   addedDate: string;   // YYYY-MM-DD
 }
