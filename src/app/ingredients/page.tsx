@@ -63,8 +63,8 @@ export default function IngredientsPage() {
     setIngredients((prev) => prev.filter((i) => i.id !== id));
   }
 
-  function clearCategory(category: Ingredient["category"]) {
-    setIngredients((prev) => prev.filter((i) => i.category !== category));
+  function clearAll() {
+    setIngredients([]);
   }
 
   function startEditExpiry(ingredient: Ingredient) {
@@ -190,7 +190,7 @@ export default function IngredientsPage() {
                 </h2>
                 {group.category === "pantry" && (
                   <button
-                    onClick={() => clearCategory("pantry")}
+                    onClick={clearAll}
                     className="text-xs text-red-500 hover:text-red-700 transition-colors"
                   >
                     Clear all
